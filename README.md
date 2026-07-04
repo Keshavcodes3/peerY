@@ -326,14 +326,15 @@ npm run dev
 - ✅ Developer Profiles
 - ✅ Projects
 - ✅ Project Applications
-- ✅ Team Members
-- ✅ Invitations
-- 🚧 AI Discover
+- ✅ Team Members (roles, permissions, ownership transfer)
+- ✅ Profile Discovery (skill/tech-stack match scoring) — API
+- ✅ Swipe Matching (like / mutual match / accept / unmatch) — API
+- 🟡 Discover & Swipe UI (built on client, runs on mock data — Discover feed wired to API, detail page pending)
+- 🟡 Invitations (API fully implemented, UI pending)
+- 🟡 Bookmarks (API fully implemented, UI pending)
+- 🟡 Real-Time Chat & Notifications (Socket.io server wired, client integration pending)
+- 🚧 AI Discover / Project Recommendations
 - 🚧 AI Mentor
-- 🚧 Smart Matching
-- 🚧 Project Recommendations
-- 🚧 Real-Time Chat
-- 🚧 Notifications
 - 🚧 Collaborative Tasks
 - 🚧 Activity Feed
 - 🚧 AI Learning Roadmaps
@@ -585,18 +586,21 @@ Your developer journey becomes visible.
 - ✅ Projects
 - ✅ Applications
 - ✅ Members
-- ✅ Invitations
+- ✅ Profile Discovery (API)
+- ✅ Swipe Matching (API)
+
+### In Progress
+
+- 🟡 Discover / Swipe UI (Discover feed live, detail page pending API wiring)
+- 🟡 Bookmarks & Invitations (API completed, UI wiring pending)
+- 🟡 Real-Time Sockets (server wired, auth set up, client pending)
 
 ### Coming Next
 
-- AI Mentor
-- AI Discover
-- AI Project Recommendations
-- Swipe Matching
-- Collaborative Tasks
-- Real-Time Chat
-- Notifications
-- Activity Feed
+- Wire `BuilderProfilePage` `/discover/:id` to the API (requires public profile endpoint)
+- Hook socket notifications to database update actions (mutual match, invitations, applications)
+- Build client UI for Bookmarks, Invitations, and Project Settings
+- Phase 3 Workspace collaboration (Kanban task board, chat, files)
 
 ---
 
