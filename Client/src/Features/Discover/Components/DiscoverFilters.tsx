@@ -1,4 +1,3 @@
-import React from 'react';
 import { Filter, Code2, Clock, MapPin } from 'lucide-react';
 
 export default function DiscoverFilters() {
