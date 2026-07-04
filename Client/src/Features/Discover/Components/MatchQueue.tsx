@@ -1,4 +1,3 @@
-import React from 'react';
 import { type BuilderProfile } from '../data/mockData';
 import { MessageSquare, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
