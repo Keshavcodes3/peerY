@@ -2,10 +2,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../../../components/ui/button"
 import { useEffect, useState } from "react"
 import {
-  Search,
-  Handshake,
-  GitFork,
-  Rocket,
   Brain,
   Users,
   Blocks,

@@ -6,6 +6,8 @@ interface AuthState {
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
+    // false until the initial session-restore (getMe) has finished
+    isInitialized: boolean;
 }
 
 const initialState: AuthState = {
@@ -13,6 +15,7 @@ const initialState: AuthState = {
     isAuthenticated: false,
     isLoading: false,
     error: null,
+    isInitialized: false,
 };
 
 const authSlice = createSlice({
@@ -35,8 +38,11 @@ const authSlice = createSlice({
             state.isAuthenticated = false;
             state.error = null;
         },
+        setInitialized: (state, action: PayloadAction<boolean>) => {
+            state.isInitialized = action.payload;
+        },
     },
 });
 
-export const { setLoading, setError, setCredentials, logout } = authSlice.actions;
+export const { setLoading, setError, setCredentials, logout, setInitialized } = authSlice.actions;
 export default authSlice.reducer;

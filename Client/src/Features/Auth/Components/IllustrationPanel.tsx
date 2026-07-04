@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     Code2, Rocket, Users, GitBranch, Crown,
-    Flame, Terminal, Sparkles, Check,
+    Flame, Terminal, Sparkles,
     BookOpen, Wrench, Briefcase
 } from "lucide-react"
 import type { OnboardingData } from "../types/onboarding.types"
@@ -355,7 +355,7 @@ function Step6Illustration({ data }: { data: OnboardingData }) {
                             Your skills will appear here...
                         </motion.p>
                     ) : (
-                        data.skills.map((skill, i) => (
+                        data.skills.map((skill) => (
                             <motion.div
                                 key={skill}
                                 layout

@@ -8,6 +8,10 @@ import projectRepository from "../Repos/Project.repos.js";
 import projectService from "../Services/Project.services.js";
 import projectModel from "../Models/Project.model.js";
 import mongoose from "mongoose";
+import {
+    updateProjectValidationSchema,
+    projectIdParamSchema
+} from "../Validation/Project.validation.js";
 
 export const createProject = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user.userId
@@ -36,7 +40,7 @@ export const getProjectController = asyncHandler(async (req: Request, res: Respo
     const userId = (req as any).user.userId
     const queryFilter = projectService.filterProjects(req.query)
     const { page = 1, limit = 10, sort = "latest" } = req.query
-    const skip = (Number(page - 1)) * Number(limit)
+    const skip = (Number(page) - 1) * Number(limit)
     const [project, total] = await Promise.all([
         projectModel.find(queryFilter)
             .sort(
@@ -94,7 +98,7 @@ export const getProjectById = asyncHandler(async (req: Request, res: Response) =
     }
     const { projectId } = req.params
     if (!projectId) throw new ApiError(400, "project id not provided")
-    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId)
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId as string)
     const project = await projectService.getProjectById(projectIdObjectForm)
     return res.status(200).json({
         message: "project fetched successfully",
@@ -104,4 +108,66 @@ export const getProjectById = asyncHandler(async (req: Request, res: Response) =
         }
     })
 })
+
+export const updateProjectController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
+    const parsed = updateProjectValidationSchema.safeParse({ params: req.params, body: req.body });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const { projectId } = parsed.data.params;
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId);
+
+    const project = await projectService.updateProject(projectIdObjectForm, userId, parsed.data.body);
+
+    return res.status(200).json({
+        success: true,
+        message: "Project updated successfully",
+        data: { project },
+    });
+});
+
+export const deleteProjectController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
+    const parsed = projectIdParamSchema.safeParse({ params: req.params });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const { projectId } = parsed.data.params;
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId);
+
+    await projectService.deleteProject(projectIdObjectForm, userId);
+
+    return res.status(200).json({
+        success: true,
+        message: "Project deleted successfully",
+    });
+});
+
+export const archiveProjectController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
+    const parsed = projectIdParamSchema.safeParse({ params: req.params });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const { projectId } = parsed.data.params;
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId);
+
+    const project = await projectService.archiveProject(projectIdObjectForm, userId);
+
+    return res.status(200).json({
+        success: true,
+        message: "Project archived successfully",
+        data: { project },
+    });
+});
 

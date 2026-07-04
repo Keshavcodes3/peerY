@@ -9,13 +9,6 @@ interface BuilderCardProps {
     isTop?: boolean;
 }
 
-const STAGE_COLORS: Record<string, string> = {
-    idea:  'bg-zinc-100 text-zinc-600',
-    mvp:   'bg-amber-50 text-amber-700 border border-amber-200',
-    beta:  'bg-blue-50 text-blue-700 border border-blue-200',
-    live:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
-};
-
 export default function BuilderCard({ profile, isTop = false }: BuilderCardProps) {
     const navigate = useNavigate();
     const cardRef = useRef<HTMLDivElement>(null);

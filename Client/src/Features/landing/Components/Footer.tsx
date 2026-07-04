@@ -1,7 +1,3 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { FaGithub, FaTwitter, FaDiscord } from 'react-icons/fa';
 
 export function Footer() {
     return (

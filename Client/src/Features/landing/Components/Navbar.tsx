@@ -17,7 +17,7 @@ export function Navbar() {
   }, [])
 
   const springTransition = {
-    type: "spring",
+    type: "spring" as const,
     stiffness: 320,
     damping: 30,
     mass: 0.8

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 // --- Sub-components for Animations ---
 
@@ -46,91 +46,6 @@ const RoadmapAnimation = () => {
         </div>
     );
 };
-
-const AIMentorAnimation = () => {
-    return (
-        <div className="flex flex-col h-full justify-center px-8 w-full max-w-sm mx-auto space-y-6">
-            <div className="self-end bg-zinc-100 text-zinc-700 px-4 py-3 rounded-2xl rounded-tr-sm text-sm max-w-[80%]">
-                What should I learn after React?
-            </div>
-            <div className="self-start bg-blue-50 border border-blue-100 text-blue-900 px-4 py-3 rounded-2xl rounded-tl-sm text-sm max-w-[90%] shadow-sm flex flex-col gap-1">
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-                    <span className="font-semibold">TypeScript</span>
-                </motion.div>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}>
-                    Build a project
-                </motion.div>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }}>
-                    Learn backend fundamentals
-                </motion.div>
-                <motion.div
-                    animate={{ opacity: [1, 0, 1] }}
-                    transition={{ repeat: Infinity, duration: 0.8 }}
-                    className="w-1.5 h-4 bg-blue-600 mt-1"
-                />
-            </div>
-        </div>
-    );
-};
-
-const PeerMatchingAnimation = () => {
-    return (
-        <div className="flex items-center justify-center h-full w-full relative">
-            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30">
-                <motion.line x1="30%" y1="50%" x2="50%" y2="40%" stroke="#2563EB" strokeWidth="2" strokeDasharray="4 4"
-                    animate={{ strokeDashoffset: [20, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} />
-                <motion.line x1="50%" y1="40%" x2="70%" y2="50%" stroke="#2563EB" strokeWidth="2" strokeDasharray="4 4"
-                    animate={{ strokeDashoffset: [20, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} />
-                <motion.line x1="30%" y1="50%" x2="70%" y2="50%" stroke="#2563EB" strokeWidth="2" strokeDasharray="4 4"
-                    animate={{ strokeDashoffset: [20, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} />
-            </svg>
-
-            <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="absolute left-[25%] top-[45%] bg-white border border-zinc-200 shadow-sm px-4 py-2 rounded-full text-sm font-medium z-10 text-zinc-700">Keshav</motion.div>
-            <motion.div animate={{ y: [0, 15, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }} className="absolute left-[45%] top-[35%] bg-white border border-blue-200 shadow-sm px-4 py-2 rounded-full text-sm font-medium z-10 text-blue-700">Arjun</motion.div>
-            <motion.div animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 0.5 }} className="absolute left-[65%] top-[45%] bg-white border border-zinc-200 shadow-sm px-4 py-2 rounded-full text-sm font-medium z-10 text-zinc-700">Sarah</motion.div>
-
-            <div className="absolute bottom-10 left-10 font-handwriting text-blue-600/70 text-xl rotate-[4deg]">
-                find your people →
-            </div>
-        </div>
-    );
-};
-
-const ProjectsAnimation = () => {
-    const states = ["Chat", "Idea", "Repository", "Project"];
-    const [idx, setIdx] = useState(0);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setIdx((prev) => (prev + 1) % states.length);
-        }, 2000);
-        return () => clearInterval(interval);
-    }, [states.length]);
-
-    return (
-        <div className="flex flex-col items-center justify-center h-full w-full relative">
-            <div className="h-32 flex items-center justify-center">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 1.05 }}
-                        transition={{ duration: 0.4 }}
-                        className="bg-white border border-zinc-200 shadow-sm px-8 py-4 rounded-2xl text-lg font-medium text-zinc-800"
-                    >
-                        {states[idx]}
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-
-            <div className="absolute bottom-12 right-12 font-handwriting text-blue-600/70 text-xl rotate-[-3deg]">
-                ship something cool
-            </div>
-        </div>
-    );
-};
-
 
 // --- Main Section Component ---
 

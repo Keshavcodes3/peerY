@@ -1,15 +1,32 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   Compass, Folder, MessageSquare, Users, Bookmark, Settings, Plus,
-  Search, Bell, ArrowRight, Star, ExternalLink, RefreshCw, Sparkles,
-  Info, ChevronDown, Check, X, ShieldAlert, Code2
+  Search, Bell, ArrowRight,
+  ChevronDown, X, Code2, Heart, Loader2, RefreshCw
 } from 'lucide-react';
+import { useDiscover } from '../hooks/useDiscover';
 
 export default function DiscoverPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'For You' | 'Top Match' | 'Most Active' | 'New Builders'>('For You');
+
+  // Live recommendations from the API.
+  const { profiles, isLoading, error, likingId, like, refetch } = useDiscover();
+  const [banner, setBanner] = useState<string | null>(null);
+
+  const handleLike = async (authId: string) => {
+    const result = await like(authId);
+    setBanner(
+      result.ok
+        ? result.mutual
+          ? "🎉 It's a match! You can now connect."
+          : 'Request sent!'
+        : result.message
+    );
+    window.setTimeout(() => setBanner(null), 3500);
+  };
 
   // Search query state
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,40 +54,6 @@ export default function DiscoverPage() {
     });
     setExperienceRange(5);
   };
-
-  // Profiles data
-  const profiles = [
-    {
-      id: "1",
-      name: "Aryan Sharma",
-      role: "Backend Developer",
-      location: "Bangalore, India",
-      avatarUrl: "https://i.pravatar.cc/150?u=aryan",
-      matchPercentage: 92,
-      stack: ["Java", "Spring Boot", "PostgreSQL"],
-      availability: "Full-time"
-    },
-    {
-      id: "2",
-      name: "James Chen",
-      role: "Backend Engineer",
-      location: "San Francisco, CA",
-      avatarUrl: "https://i.pravatar.cc/150?u=james",
-      matchPercentage: 89,
-      stack: ["Go", "Docker", "Kubernetes"],
-      availability: "Full-time"
-    },
-    {
-      id: "3",
-      name: "Neha Patil",
-      role: "Full Stack Developer",
-      location: "Pune, India",
-      avatarUrl: "https://i.pravatar.cc/150?u=neha",
-      matchPercentage: 85,
-      stack: ["TypeScript", "Next.js", "Node.js"],
-      availability: "Open to Freelance"
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-[#0F172A] antialiased">
@@ -379,75 +362,136 @@ export default function DiscoverPage() {
               </div>
             </div>
 
+            {/* Action banner (match / request sent / error) */}
+            {banner && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-[#2563EB]/5 border border-[#2563EB]/20 text-[#2563EB] text-xs font-semibold px-4 py-3 rounded-xl"
+              >
+                {banner}
+              </motion.div>
+            )}
+
             {/* Top Matches Section */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-bold text-[#0F172A] tracking-wide uppercase">Top Matches for You</h3>
-                <div className="flex gap-2">
-                  <button className="w-8 h-8 rounded-full border border-[#E5E7EB] bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition-colors">
-                    <span>&larr;</span>
-                  </button>
-                  <button className="w-8 h-8 rounded-full border border-[#E5E7EB] bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition-colors">
-                    <span>&rarr;</span>
+                <button
+                  onClick={refetch}
+                  className="w-8 h-8 rounded-full border border-[#E5E7EB] bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition-colors"
+                  title="Refresh"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+
+              {/* Loading state */}
+              {isLoading && (
+                <div className="flex items-center justify-center py-20 text-slate-400">
+                  <Loader2 size={20} className="animate-spin mr-2" />
+                  <span className="text-xs font-semibold">Finding your best matches…</span>
+                </div>
+              )}
+
+              {/* Error state */}
+              {!isLoading && error && (
+                <div className="border border-red-100 bg-red-50 rounded-[20px] p-8 text-center">
+                  <p className="text-sm font-bold text-red-600">{error}</p>
+                  <button
+                    onClick={refetch}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:text-[#1D4ED8]"
+                  >
+                    <RefreshCw size={13} /> Try again
                   </button>
                 </div>
-              </div>
+              )}
 
-              {/* 3 profile cards horizontally */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {profiles.map((profile) => (
-                  <motion.div
-                    key={profile.id}
-                    whileHover={{ y: -4 }}
-                    transition={{ duration: 0.2 }}
-                    className="bg-white border border-[#E5E7EB] rounded-[20px] p-6 flex flex-col items-center text-center shadow-sm relative"
-                  >
-                    {/* Match percentage badge top left */}
-                    <span className="absolute top-4 left-4 bg-blue-50 text-[#2563EB] border border-blue-100 rounded-full px-2.5 py-1 text-[11px] font-bold">
-                      {profile.matchPercentage}% Match
-                    </span>
+              {/* Empty state */}
+              {!isLoading && !error && profiles.length === 0 && (
+                <div className="border border-[#E5E7EB] bg-white rounded-[20px] p-10 text-center">
+                  <p className="text-sm font-bold text-[#0F172A]">No matches yet</p>
+                  <p className="text-xs text-slate-400 font-medium mt-1 max-w-sm mx-auto">
+                    Add more skills and tech stack to your profile to unlock recommendations, or check back later.
+                  </p>
+                </div>
+              )}
 
-                    {/* Avatar */}
-                    <div className="w-20 h-20 rounded-full overflow-hidden mt-6 mb-4 relative bg-slate-50 border border-[#E5E7EB]">
-                      <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
-                      <div className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
-                    </div>
-
-                    {/* Basic Info */}
-                    <h4 className="font-display font-bold text-[#0F172A] text-base">{profile.name}</h4>
-                    <p className="text-xs text-[#64748B] font-semibold mt-0.5">{profile.role}</p>
-
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-2 font-medium">
-                      <span>{profile.location}</span>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="w-full h-px bg-slate-100 my-4" />
-
-                    {/* Tech stack pills */}
-                    <div className="flex flex-wrap justify-center gap-1.5 mb-6">
-                      {profile.stack.map((tech) => (
-                        <span key={tech} className="bg-slate-50 border border-[#E5E7EB] text-[#64748B] font-semibold text-[10px] px-2.5 py-1 rounded-md">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Buttons block */}
-                    <div className="w-full flex gap-2 mt-auto">
-                      <button
-                        onClick={() => navigate(`/discover/${profile.id}`)}
-                        className="flex-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-2.5 rounded-lg shadow-sm transition-colors"
+              {/* Live profile cards */}
+              {!isLoading && !error && profiles.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {profiles.map((profile) => {
+                    const pills = (profile.techstack?.length ? profile.techstack : profile.skills) || [];
+                    const avatar = profile.avatar || `https://i.pravatar.cc/150?u=${profile.authId}`;
+                    return (
+                      <motion.div
+                        key={profile._id}
+                        whileHover={{ y: -4 }}
+                        transition={{ duration: 0.2 }}
+                        className="bg-white border border-[#E5E7EB] rounded-[20px] p-6 flex flex-col items-center text-center shadow-sm relative"
                       >
-                        View Profile
-                      </button>
-                      <button className="w-10 h-10 border border-[#E5E7EB] hover:bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
-                        <Bookmark size={15} />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                        {/* Match score badge */}
+                        <span className="absolute top-4 left-4 bg-blue-50 text-[#2563EB] border border-blue-100 rounded-full px-2.5 py-1 text-[11px] font-bold">
+                          {Math.round(profile.matchScore)} pts
+                        </span>
+                        {profile.Rank && (
+                          <span className="absolute top-4 right-4 bg-slate-100 text-slate-600 border border-[#E5E7EB] rounded-full px-2 py-1 text-[10px] font-bold">
+                            Rank {profile.Rank}
+                          </span>
+                        )}
+
+                        {/* Avatar */}
+                        <div className="w-20 h-20 rounded-full overflow-hidden mt-6 mb-4 relative bg-slate-50 border border-[#E5E7EB]">
+                          <img src={avatar} alt={profile.name} className="w-full h-full object-cover" />
+                          <div className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
+                        </div>
+
+                        {/* Basic Info */}
+                        <h4 className="font-display font-bold text-[#0F172A] text-base capitalize">{profile.name}</h4>
+                        <p className="text-xs text-[#64748B] font-semibold mt-0.5 capitalize">
+                          {profile.experience || 'Builder'}
+                        </p>
+
+                        {profile.Bio && (
+                          <p className="text-[11px] text-slate-400 mt-2 font-medium line-clamp-2">{profile.Bio}</p>
+                        )}
+
+                        {/* Divider */}
+                        <div className="w-full h-px bg-slate-100 my-4" />
+
+                        {/* Skill / tech pills */}
+                        <div className="flex flex-wrap justify-center gap-1.5 mb-6">
+                          {pills.slice(0, 4).map((tech) => (
+                            <span key={tech} className="bg-slate-50 border border-[#E5E7EB] text-[#64748B] font-semibold text-[10px] px-2.5 py-1 rounded-md capitalize">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Buttons block */}
+                        <div className="w-full flex gap-2 mt-auto">
+                          <button
+                            onClick={() => navigate(`/discover/${profile._id}`)}
+                            className="flex-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-2.5 rounded-lg shadow-sm transition-colors"
+                          >
+                            View Profile
+                          </button>
+                          <button
+                            onClick={() => handleLike(profile.authId)}
+                            disabled={likingId === profile.authId}
+                            title="Connect"
+                            className="w-10 h-10 border border-[#E5E7EB] hover:bg-rose-50 hover:border-rose-200 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors disabled:opacity-50"
+                          >
+                            {likingId === profile.authId
+                              ? <Loader2 size={15} className="animate-spin" />
+                              : <Heart size={15} />}
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Explore by Skills section */}

@@ -1,8 +1,7 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type BuilderProfile } from '../data/mockData';
 import LiveActivity from './LiveActivity';
-import { MessageSquare, ArrowRight, Bell, Folder, Zap } from 'lucide-react';
+import { MessageSquare, ArrowRight, Folder, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface RightPanelProps {

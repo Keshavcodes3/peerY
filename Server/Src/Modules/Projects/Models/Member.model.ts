@@ -71,7 +71,7 @@ memberSchema.index({ project: 1, role: 1 });
 /**
  * Auto-populate permissions from role on create/update if not explicitly set.
  */
-memberSchema.pre("save", function (next) {
+memberSchema.pre("save", function (next: any) {
     if (this.isModified("role") || this.isNew) {
         this.permissions = DEFAULT_PERMISSIONS[this.role];
     }

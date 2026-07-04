@@ -62,10 +62,25 @@ const getSingleProject = async (projectId: Types.ObjectId) => {
     return project
 }
 
+const updateProject = async (projectId: Types.ObjectId | string, updateData: Partial<ProjectTypes>) => {
+    return await projectModel.findByIdAndUpdate(projectId, updateData, { new: true, runValidators: true });
+};
+
+const deleteProject = async (projectId: Types.ObjectId | string) => {
+    return await projectModel.findByIdAndDelete(projectId);
+};
+
+const archiveProject = async (projectId: Types.ObjectId | string) => {
+    return await projectModel.findByIdAndUpdate(projectId, { isArchived: true, Stage: "ARCHIEVED" }, { new: true });
+};
+
 const projectRepository = {
     createProject,
     getMyProject,
-    getSingleProject
-}
+    getSingleProject,
+    updateProject,
+    deleteProject,
+    archiveProject,
+};
 
-export default projectRepository
+export default projectRepository;

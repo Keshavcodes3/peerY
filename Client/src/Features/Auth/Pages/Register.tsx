@@ -36,11 +36,6 @@ export default function Register() {
         setStep(s => Math.min(s + 1, TOTAL_STEPS))
     }
 
-    const back = () => {
-        if (step === 1) return
-        setDirection(-1)
-        setStep(s => Math.max(s - 1, 1))
-    }
 
     const handleSubmit = async () => {
         const success = await register({

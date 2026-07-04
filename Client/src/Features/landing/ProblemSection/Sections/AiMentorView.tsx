@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Sparkles, Send, Bot, User, Lightbulb, ArrowRight } from "lucide-react"
+import { Sparkles, Send, Bot, User, Lightbulb } from "lucide-react"
 
 const SUGGESTIONS = [
     "What should I learn next?",
