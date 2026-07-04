@@ -1,4 +1,5 @@
-import { useState, KeyboardEvent } from "react"
+import { useState } from "react"
+import type { KeyboardEvent } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, Plus, X } from "lucide-react"
 import type { OnboardingData } from "../../types/onboarding.types"
