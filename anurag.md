@@ -12,9 +12,10 @@ Stack: `Client/` = Vite + React + TypeScript + Redux Toolkit + Tailwind v4 + Fra
 
 1. **Scanned** the whole project and every markdown file.
 2. **Documented the codebase** — filled 6 empty doc stubs and corrected the roadmaps to match what's actually built.
-3. **Wrote `next.md`** — an orientation + prioritized "what to work on next" backlog.
-4. **Built a working authenticated session** (P0) — token persistence, axios interceptors, session restore, route guards, and the missing `/dashboard` page.
-5. **Fixed the broken build** — `npm run build` went from **67 TypeScript errors → 0**; `vite build` now succeeds.
+3. **Wrote `next.md` & `ag.md`** — orientation + prioritized backlog + codebase audit.
+4. **Built a working authenticated session** (P0) — token persistence, session restore, route guards, and `/dashboard`.
+5. **Fixed the broken build** — resolved 67 TypeScript errors to get a successful production build.
+6. **Closed core backend gaps** (P1 & P2) — implemented Bookmarks, Invitations, Project update/delete/archive, Zod Auth schemas, Sockets server-side initialization, and Security Hardening (Helmet + Rate Limiting).
 
 ---
 
@@ -143,3 +144,31 @@ rendered by the page). So the wiring target was `DiscoverPage` itself.
 **Still on mock data:** `BuilderProfilePage` (`/discover/:id`) still reads `data/mockData.ts`.
 
 ---
+
+## 7. Closed core backend gaps & security hardening
+
+Implemented backend codebases for Bookmarks, Invitations, extended Project actions, rate limiting, helmet, and Socket.io server-side.
+
+| Area | Implementation Details |
+|---|---|
+| **Bookmarks** | Compound unique index `{ user, project }` in model. Added full repo, service, controller, and routes under `/bookmarks` and `/project/:projectId/bookmark`. Automatically manages `project.bookMarksCount`. |
+| **Invitations** | Custom validation schemas, role checks for inviter permissions (`canInviteMembers`), status tracking, and transactional creation of `Member` documents when accepted (with `joinedBy: "INVITATION"`). |
+| **Project Ext.** | Added update, cascade delete (cleaning up Applications, Members, and Bookmarks), and archive (`isArchived = true`) routes and services. |
+| **Security** | Configured `helmet` headers and `express-rate-limit` (global rate limits + strict auth rate limits) in `App.ts`. |
+| **Socket.io** | Configured server creation, token-based authentication middleware, status tracking, presence handlers, and scaffolded `sendNotificationToUser`. |
+| **Zod Auth** | Attached `registerSchema` and `loginSchema` verification directly inside `auth.controller.ts`. |
+
+---
+
+## Suggested next steps (priority order)
+
+1. **Wire `BuilderProfilePage` (`/discover/:id`) to the API**:
+   * Create a new backend endpoint `GET /api/v1/profile/:profileId` or `GET /api/v1/profile/user/:userId` to fetch a public profile.
+   * Add a frontend profile-fetching service in `discover.service.ts`.
+   * Update `BuilderProfilePage.tsx` to read from the API instead of `mockData.ts`.
+2. **Emit Real-Time Socket Notifications**:
+   * Hook `sendNotificationToUser` into matching/liking, project invitations, and project application accept/reject flows to trigger instant socket notifications.
+3. **Build Frontend UI for Bookmarks, Invitations, and Project Settings**:
+   * Create dashboard panels to allow users to manage invitations and view bookmarked projects.
+4. **Implement Phase 3 Collaboration Workspace**:
+   * Build the Kanban board, workspace chat, and file storage APIs and UI.
