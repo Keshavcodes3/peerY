@@ -1,13 +1,19 @@
 import 'dotenv/config'
-
+import { createServer } from 'http';
 import App from "./Src/App.js";
 import { connectToDatabase } from './Src/Config/connectToDB.js';
+import { initSocket } from './Src/Sockets/index.js';
 
 const startServer = async () => {
   try {
     await connectToDatabase();
     const PORT = 3000;
-    App.listen(PORT, () => {
+    const httpServer = createServer(App);
+    
+    // Initialize Socket.io server
+    initSocket(httpServer);
+
+    httpServer.listen(PORT, () => {
       console.log(`Server is listening on port ${PORT}`);
     });
   } catch (error) {
