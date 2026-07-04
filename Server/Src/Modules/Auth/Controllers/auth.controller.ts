@@ -1,9 +1,16 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../../Utils/asyncHandler.utils.js';
 import * as authService from '../Services/auth.service.js';
+import { ApiError } from '../../../Utils/ApiError.utils.js';
+import { registerSchema, loginSchema } from '../Validation/Auth.validation.js';
 
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
-  const { user, token } = await authService.registerUser(req.body);
+  const parsed = registerSchema.safeParse({ body: req.body });
+  if (!parsed.success) {
+    throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+  }
+
+  const { user, token } = await authService.registerUser(parsed.data.body);
   res.cookie('token', token)
   res.status(201).json({
     success: true,
@@ -17,7 +24,12 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
 
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const parsed = loginSchema.safeParse({ body: req.body });
+  if (!parsed.success) {
+    throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+  }
+
+  const { email, password } = parsed.data.body;
   const { user, token } = await authService.loginUser(email, password);
   res.cookie('token', token)
   res.status(200).json({
