@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type BuilderProfile } from '../data/mockData';
 import { MessageCircle, User, X, Handshake, Sparkles } from 'lucide-react';
