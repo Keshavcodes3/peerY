@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { ArrowRight, User, AtSign, Lock, ChevronDown } from "lucide-react"
 import type { OnboardingData } from "../../types/onboarding.types"
 
