@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockBuilders } from '../data/mockData';
@@ -353,7 +353,7 @@ export default function BuilderProfilePage() {
                                 {(profile.projects ?? []).map(project => (
                                     <motion.div
                                         key={project.id}
-                                        whileHover={{ y: -2, shadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+                                        whileHover={{ y: -2 }}
                                         className="bg-white rounded-2xl border border-zinc-100 p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
                                     >
                                         <div className="flex items-start justify-between mb-3">
