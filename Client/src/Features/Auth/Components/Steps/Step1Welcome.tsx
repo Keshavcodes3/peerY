@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { Mail } from "lucide-react"
 import { FaGithub } from "react-icons/fa"
 
