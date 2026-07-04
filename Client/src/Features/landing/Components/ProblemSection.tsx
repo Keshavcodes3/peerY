@@ -1,33 +1,6 @@
-import { motion, useInView } from "framer-motion"
-import { useRef } from "react"
-import { X, Check, ArrowRight } from "lucide-react"
+import { motion } from "framer-motion"
 import StickyWorkspace from "../ProblemSection/StickyWorkspace"
-const TRANSFORMATIONS = [
-  {
-    old: { title: "Learn Alone", desc: "Watch tutorials. Feel lost." },
-    new: { title: "Learn Together", desc: "Roadmaps, AI guidance, peers." },
-  },
-  {
-    old: { title: "Build Alone", desc: "Half-finished side projects." },
-    new: { title: "Build Together", desc: "Real products. Real teammates." },
-  },
-  {
-    old: { title: "Get Stuck", desc: "No one to ask." },
-    new: { title: "Ask Peers", desc: "Community support and mentorship." },
-  },
-  {
-    old: { title: "Quit", desc: "Motivation disappears." },
-    new: { title: "Stay Consistent", desc: "Build streaks and accountability." },
-  },
-  {
-    old: { title: "Consume Content", desc: "Another tutorial." },
-    new: { title: "Ship Products", desc: "Real experience." },
-  },
-]
-
 export function ProblemSection() {
-  const containerRef = useRef(null)
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" })
 
   return (
     <>
