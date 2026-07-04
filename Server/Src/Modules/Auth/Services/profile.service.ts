@@ -112,7 +112,7 @@ export const updateProfile = async (userId: string, updateData: Partial<authProf
   const currentExp = sanitized.experience || profile.experience;
   const currentProj = profile.totalProject || 0;
   const currentCont = profile.totalContribution || 0;
-  sanitized.Rank = calculateRank(currentExp, currentProj, currentCont);
+  sanitized.Rank = calculateRank(currentExp, Number(currentProj), Number(currentCont));
 
   return await profileRepositary.updateProfile(userId, sanitized);
 };
