@@ -58,16 +58,16 @@ export const sanitizeProfileInput = (input: Partial<authProfile>): Partial<authP
 
   // Handle arrays, ensure they are cleaned of empty elements
   if (Array.isArray(input.skills)) {
-    clean.skills = input.skills.map(s => s.trim().toLowerCase()).filter(Boolean) as [String];
+    clean.skills = input.skills.map(s => s.trim().toLowerCase()).filter(Boolean) as string[];
   }
   if (Array.isArray(input.techstack)) {
-    clean.techstack = input.techstack.map(t => t.trim().toLowerCase()).filter(Boolean) as [String];
+    clean.techstack = input.techstack.map(t => t.trim().toLowerCase()).filter(Boolean) as string[];
   }
   if (Array.isArray(input.socials)) {
-    clean.socials = input.socials.map(s => s.trim()).filter(Boolean) as [String];
+    clean.socials = input.socials.map(s => s.trim()).filter(Boolean) as string[];
   }
   if (Array.isArray(input.Achievements)) {
-    clean.Achievements = input.Achievements.map(a => a.trim()).filter(Boolean) as [String];
+    clean.Achievements = input.Achievements.map(a => a.trim()).filter(Boolean) as string[];
   }
 
   if (typeof input.avaliabilty === 'boolean') {

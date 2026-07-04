@@ -20,8 +20,8 @@ export const applyToProjectSchema = z.object({
 
 export const getMyApplicationsSchema = z.object({
     query: z.object({
-        page: z.string().regex(/^\d+$/).transform(Number).optional().default("1"),
-        limit: z.string().regex(/^\d+$/).transform(Number).optional().default("10"),
+        page: z.string().regex(/^\d+$/).optional().default("1").transform(Number),
+        limit: z.string().regex(/^\d+$/).optional().default("10").transform(Number),
     })
 });
 
@@ -30,8 +30,8 @@ export const getProjectApplicationsSchema = z.object({
         projectId: objectIdSchema,
     }),
     query: z.object({
-        page: z.string().regex(/^\d+$/).transform(Number).optional().default("1"),
-        limit: z.string().regex(/^\d+$/).transform(Number).optional().default("10"),
+        page: z.string().regex(/^\d+$/).optional().default("1").transform(Number),
+        limit: z.string().regex(/^\d+$/).optional().default("10").transform(Number),
         status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "WITHDRAWN"]).optional(),
         search: z.string().optional()
     })

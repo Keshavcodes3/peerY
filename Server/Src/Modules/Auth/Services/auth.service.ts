@@ -38,10 +38,10 @@ export const registerUser = async (userData: AuthRegister) => {
   });
 
   const userId = newUser._id;
-  const token = generateToken(userId as string, newUser.email);
+  const token = generateToken(userId as any, newUser.email);
 
   const userObj = newUser.toObject();
-  delete userObj.password;
+  delete (userObj as any).password;
 
   return { user: userObj, token };
 };
@@ -74,10 +74,10 @@ export const loginUser = async (email: string, password: string) => {
     throw new ApiError(401, 'Invalid credentials');
   }
 
-  const token = generateToken(user._id as string, user.email);
+  const token = generateToken(user._id as any, user.email);
   
   const userObj = user.toObject();
-  delete userObj.password;
+  delete (userObj as any).password;
 
   return { user: userObj, token };
 };
