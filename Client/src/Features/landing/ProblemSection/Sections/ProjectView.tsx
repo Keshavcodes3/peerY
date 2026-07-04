@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { FolderKanban, GitBranch, CircleDot, CheckCircle2, Clock, Users } from "lucide-react"
+import { FolderKanban, GitBranch, CircleDot, CheckCircle2, Users } from "lucide-react"
 
 const PROJECTS = [
     {
