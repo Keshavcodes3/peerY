@@ -1,38 +1,41 @@
 # anurag.md — Work Log
 
 A running log of everything done in this repo (`peerY`) after cloning it.
-Newest work is summarized at the top of each section. Date: 2026-07-01/02.
 
-Repo: cloned from `https://github.com/Keshavcodes3/peerY.git`
-Stack: `Client/` = Vite + React + TypeScript + Redux Toolkit + Tailwind v4 + Framer Motion · `Server/` = Express + TypeScript + MongoDB + JWT
+Repo: `https://github.com/Keshavcodes3/peerY.git`  
+Stack: `Client/` = Vite + React + TypeScript + Redux Toolkit + Tailwind v4 + Framer Motion  
+       `Server/` = Express 5 + TypeScript (tsx) + MongoDB + JWT + Socket.io
 
 ---
 
-## TL;DR — what changed
+## TL;DR — what changed (all sessions)
 
 1. **Scanned** the whole project and every markdown file.
-2. **Documented the codebase** — filled 6 empty doc stubs and corrected the roadmaps to match what's actually built.
-3. **Wrote `next.md` & `ag.md`** — orientation + prioritized backlog + codebase audit.
-4. **Built a working authenticated session** (P0) — token persistence, session restore, route guards, and `/dashboard`.
-5. **Fixed the broken build** — resolved 67 TypeScript errors to get a successful production build.
-6. **Closed core backend gaps** (P1 & P2) — implemented Bookmarks, Invitations, Project update/delete/archive, Zod Auth schemas, Sockets server-side initialization, and Security Hardening (Helmet + Rate Limiting).
+2. **Documented the codebase** — filled 6 empty doc stubs and corrected the roadmaps.
+3. **Built a working authenticated session** — token persistence, session restore, route guards, dashboard.
+4. **Fixed the broken build** — resolved 67 pre-existing TypeScript errors.
+5. **Closed core backend gaps** — Bookmarks, Invitations, Project CRUD extensions, Helmet, rate-limit, Socket.io.
+6. **Wired Discover & Profiles to live API** — live feed, filters, public profile page.
+7. **Wired Dashboard, Network, and Workspace UIs** — premium light theme, tabbed views.
+8. **Fixed CORS + errors** — preflight, dynamic origin, Helmet config, CastError handler, secure cookies.
+9. **Built all missing client-side UI** — My Applications, Invitations tab, Network Message button, Bookmarks navigation.
+10. **Updated all MD files** — README, features.md, Design.md, anurag.md all reflect current state.
 
 ---
 
 ## 1. Project & documentation scan
 
-- Mapped the repo: `Client/` (React/Vite) + `Server/` (Express) + `Contexts/Docs/` (API docs) + planning docs (`plan.md`, `Workflow.md`, `README.md`).
+- Mapped the repo: `Client/` (React/Vite) + `Server/` (Express) + `Contexts/Docs/` (API docs) + planning docs.
 - Deep-scanned both `Client` and `Server` to inventory what is **actually implemented** vs planned.
 
-**Backend modules implemented:** Auth, Profile, Discover, Match, Projects (Project + Application + Member).
-**Client features implemented:** Landing, Auth (login + 7-step onboarding), Discover (swipe deck, filters, builder profile) — running on **mock data**.
+**Backend modules implemented:** Auth, Profile, Discover, Match, Projects (Project + Application + Member + Bookmark + Invitation).  
+**Client features implemented at start:** Landing, Auth (login + 7-step onboarding), Discover — running on **mock data**.
 
 ---
 
-## 2. Markdown docs updated to match real progress
+## 2. Markdown docs updated (session 1)
 
 ### Filled 6 empty doc stubs (`Contexts/`)
-Written directly from the source code — routes, models, enums, validation, business rules:
 
 | File | What it documents |
 |------|-------------------|
@@ -40,137 +43,176 @@ Written directly from the source code — routes, models, enums, validation, bus
 | `Contexts/Docs/match.md` | 6 Match routes + `match` model, mutual-like auto-accept, lifecycle, notification events |
 | `Contexts/Docs/project.md` | 4 Project routes + full `Project` model (requirements, counters, indexes) |
 | `Contexts/Docs/member.md` | 6 Member routes + `Member` model, role hierarchy (OWNER→VIEWER) + permission matrix, transactional ownership transfer |
-| `Contexts/Docs/bookmark.md` | Marked **🚧 planned** — the route file is empty; documented the intended contract |
-| `Contexts/prd.md` | Full PRD with an honest ✅/🟡/🚧 feature-status matrix, data-model summary, known gaps |
-
-`auth.md`, `application.md`, `profile.md` were already accurate and left untouched.
-
-### Corrected the roadmaps
-- **`README.md`** — both progress checklists fixed: **Discover + Match are done** (were missing); **Invitations demoted from ✅ to 🚧** (its route file is an empty stub); added the "client UI runs on mock data" caveat.
-- **`plan.md`** — added a **Progress Snapshot** table at the top mapping each phase item to ✅/🟡/🚧.
-
-### Key accuracy corrections captured in the docs
-- Client is **Vite + React**, not Next.js as the older plan/workflow docs claim.
-- `Bookmark.routes.ts`, `Invitation.routes.ts`, `Role.routes.ts` are **empty stubs**.
-- Socket.io is **scaffolded but not wired**; notifications are persisted fire-and-forget (not real-time).
-- Intentional non-standard schema names exist and should not be "fixed": `Requiremnts`, `Stage`, `Bio`, `avaliabilty`, enum `ARCHIEVED`.
+| `Contexts/Docs/bookmark.md` | Bookmark routes, compound unique index, bookMarksCount management |
+| `Contexts/prd.md` | Full PRD with ✅/🟡/🚧 feature-status matrix, data-model summary, known gaps |
 
 ---
 
-## 3. `next.md` created
+## 3. P0 — Working authenticated session (client)
 
-Added `next.md` at the repo root as an orientation doc for future work:
-- Dev commands, architecture, and conventions (including the non-standard names to leave alone).
-- A prioritized **"what to work on next"** backlog (P0 → P3).
-
----
-
-## 4. P0 — Working authenticated session (client)
-
-**Problem found:** the server returns the JWT in the response body *and* sets a non-httpOnly cookie, but (a) the client never stored the token, and (b) the cross-origin cookie (`:5173`→`:3000`) doesn't attach to axios XHR under `SameSite=Lax`. So login "worked" but the session never persisted, and both Login/Register navigated to a non-existent `/dashboard` (→ 404). `verifyAuth` already accepts `Authorization: Bearer`, so the fix is a stored Bearer token.
+**Problem:** Server returned JWT in body + set a non-httpOnly cookie, but the client never stored the token. Cross-origin cookie (`5173→3000`) didn't attach under `SameSite=Lax`. Login "worked" but session never persisted.
 
 **Changes:**
 
 | File | Change |
 |------|--------|
-| `Client/src/App/api.ts` | Added `tokenStore` (localStorage). Request interceptor attaches `Authorization: Bearer <token>`. Response interceptor clears the token on `401`. `baseURL` now reads `VITE_API_URL` with a localhost fallback. |
-| `Client/src/Features/Auth/Redux/auth.slice.ts` | Added `isInitialized` state + `setInitialized` reducer (so guards can wait for session restore). |
-| `Client/src/Features/Auth/Hooks/useAuth.ts` | Store/clear the token on login/register/logout. New `initializeAuth()` calls `getMe()` on boot to restore the session. Reads server error shape (`error` or `message`). |
-| `Client/src/Features/Auth/Components/ProtectedRoute.tsx` | **New.** Shows a loader until `isInitialized`, then renders the route or redirects to `/login` (preserving the target location). |
-| `Client/src/Features/Dashboard/Pages/Dashboard.tsx` | **New.** The missing `/dashboard` page — greets the authed user, quick links, logout. Dark/zinc + Framer Motion styling to match the app. |
-| `Client/src/App.tsx` | Runs `initializeAuth()` once on mount. `/dashboard`, `/discover`, `/discover/:id` are now wrapped in `ProtectedRoute`. |
-
-**Verified:** dev server boots (~800 ms, `HTTP 200`); all new/edited files are type-clean.
-
-**How the session works now:** login/register → token saved to localStorage → attached as `Bearer` on every request → on refresh, `initializeAuth()` calls `/auth/me` to restore the user → protected routes wait for that, then allow or redirect to `/login`.
+| `Client/src/App/api.ts` | `tokenStore` (localStorage). Interceptors: attach `Bearer` on request, clear on `401`. `baseURL` from `VITE_API_URL`. |
+| `Client/src/Features/Auth/Redux/auth.slice.ts` | Added `isInitialized` state + `setInitialized` reducer. |
+| `Client/src/Features/Auth/Hooks/useAuth.ts` | Store/clear token on login/register/logout. `initializeAuth()` calls `/auth/me` on boot. |
+| `Client/src/Features/Auth/Components/ProtectedRoute.tsx` | **New.** Shows loader until `isInitialized`, then renders or redirects to `/login`. |
+| `Client/src/Features/Dashboard/Pages/Dashboard.tsx` | **New.** Premium light-theme dashboard with tabs, quick nav, network counters. |
+| `Client/src/App.tsx` | Runs `initializeAuth()` on mount. All app routes wrapped in `ProtectedRoute`. |
 
 ---
 
-## 5. Fixed the broken production build
+## 4. Fixed the broken production build
 
-`npm run build` (`tsc -b && vite build`) was **already failing before any of our work**, on **67 pre-existing TypeScript errors** (strict `noUnusedLocals`/`noUnusedParameters`, a missing `@/*` path alias, and Framer Motion v12 type changes). None were from our new code.
+`npm run build` was failing on **67 pre-existing TypeScript errors**.
 
-**Fixes applied:**
-- Configured the **`@/*` path alias** properly in `tsconfig.app.json` (`paths`) and `vite.config.ts` (resolve alias) for shadcn imports. (Removed a deprecated `baseUrl` a helper had added.)
-- Removed **unused imports/vars** across ~20 files (stray `React` defaults, unused lucide icons, dead locals).
-- Removed **superseded/dead code** that strict lint flagged:
-  - `EcosystemSection.tsx` — 3 old animation components (`AIMentorAnimation`, `PeerMatchingAnimation`, `ProjectsAnimation`) that were replaced by bespoke inline cards.
-  - `ProblemSection.tsx` — the old `TRANSFORMATIONS` data + unused `useInView`/`containerRef` (section now uses `StickyWorkspace`).
-  - `BuilderCard.tsx` — unused `STAGE_COLORS`.
-  - `Register.tsx` — an unwired `back()` handler (see "Notes" below).
-- Fixed **Framer Motion typing** (`type: "spring" as const`), a couple of `import type` cases, and removed an invalid `shadow` animation prop in `BuilderProfilePage.tsx`.
+**Fixes:**
+- Configured `@/*` path alias in `tsconfig.app.json` + `vite.config.ts`
+- Removed unused imports/vars across ~20 files
+- Fixed Framer Motion typing (`type: "spring" as const`)
+- Removed dead code: `AIMentorAnimation`, `PeerMatchingAnimation`, `ProjectsAnimation`, `TRANSFORMATIONS`, `STAGE_COLORS`, unwired `back()` handler
 
-No `@ts-ignore`, no `any`, no weakening of `tsconfig`.
-
-**Result:**
-- `npx tsc -b --noEmit` → **0 errors**
-- `vite build` → **✓ built** (463 modules). Only a non-fatal "chunk > 500 kB" perf warning remains.
+**Result:** `tsc -b` → 0 errors · `vite build` → ✓ built (463 modules)
 
 ---
 
-## Notes / things to be aware of
-
-- **Removed but maybe wanted:** `Register.tsx` had a `back()` function for the onboarding wizard that was never wired to a button, so strict lint flagged it and it was removed. Re-add + connect it to a Back button if that navigation is desired.
-- The Discover/Match UI still uses **mock data** (`Client/src/Features/Discover/data/mockData.ts`) — not yet calling the live APIs.
-- Server `logout` doesn't `clearCookie`; email verification / password reset / OAuth backends are not implemented.
-
----
-
-## 6. Wired Discover to the live backend (client)
-
-Replaced the hardcoded profiles on the Discover page with real API data now that
-auth works.
-
-**Finding:** `DiscoverPage.tsx` rendered its **own inline hardcoded 3-profile array** —
-the `SwipeDeck` / `useSwipeDeck` / `data/mockData.ts` components were orphaned (never
-rendered by the page). So the wiring target was `DiscoverPage` itself.
-
-**Changes:**
-
-| File | Change |
-|------|--------|
-| `Client/src/Features/Discover/types/discover.types.ts` | **New.** `DiscoverProfile` (mirrors the server aggregation projection), `DiscoverResponse`, `LikeResult`. |
-| `Client/src/Features/Discover/services/discover.service.ts` | **New.** `getRecommendedProfiles()` → `GET /discover/profile`; `likeUser(authId)` → `POST /match/like/:userId` (reads `mutual` from HTTP 200 vs 201). |
-| `Client/src/Features/Discover/hooks/useDiscover.ts` | **New.** Fetches profiles on mount; exposes `isLoading`/`error`/`likingId`/`refetch`; `like()` optimistically removes the liked profile and reports mutual-match. |
-| `Client/src/App/api.ts` | Added `ENDPOINT.discover.profiles`. |
-| `Client/src/Features/Discover/Pages/DiscoverPage.tsx` | Removed hardcoded array; now uses `useDiscover`. Added loading / error / empty states, a refresh button, and an action banner ("It's a match!" / "Request sent" / error). Cards map server fields (matchScore→pts badge, Rank badge, experience as subtitle, techstack/skills pills, Bio) and the connect (heart) button calls the like API. |
-
-**Important server contract note:** the like endpoint target `:userId` is the profile's
-**`authId`** (the owning user id), not the profile `_id`. The like button uses `authId`;
-"View Profile" navigates by profile `_id`.
-
-**Verified:** `tsc -b` → 0 errors · `vite build` → ✓ built · dev server boots and serves HTTP 200.
-
-**Still on mock data:** `BuilderProfilePage` (`/discover/:id`) still reads `data/mockData.ts`.
-
----
-
-
-
-## 7. Closed core backend gaps & security hardening
-
-Implemented backend codebases for Bookmarks, Invitations, extended Project actions, rate limiting, helmet, and Socket.io server-side.
+## 5. Closed core backend gaps & security hardening
 
 | Area | Implementation Details |
 |---|---|
-| **Bookmarks** | Compound unique index `{ user, project }` in model. Added full repo, service, controller, and routes under `/bookmarks` and `/project/:projectId/bookmark`. Automatically manages `project.bookMarksCount`. |
-| **Invitations** | Custom validation schemas, role checks for inviter permissions (`canInviteMembers`), status tracking, and transactional creation of `Member` documents when accepted (with `joinedBy: "INVITATION"`). |
-| **Project Ext.** | Added update, cascade delete (cleaning up Applications, Members, and Bookmarks), and archive (`isArchived = true`) routes and services. |
-| **Security** | Configured `helmet` headers and `express-rate-limit` (global rate limits + strict auth rate limits) in `App.ts`. |
-| **Socket.io** | Configured server creation, token-based authentication middleware, status tracking, presence handlers, and scaffolded `sendNotificationToUser`. |
-| **Zod Auth** | Attached `registerSchema` and `loginSchema` verification directly inside `auth.controller.ts`. |
+| **Bookmarks** | Compound unique index `{ user, project }`. Full repo, service, controller, routes. Manages `project.bookMarksCount`. |
+| **Invitations** | Zod validation, `canInviteMembers` permission check, status tracking, transactional Member creation on accept (`joinedBy: "INVITATION"`). |
+| **Project Ext.** | Added update, cascade delete (Applications + Members + Bookmarks), and archive routes/services. |
+| **Security** | `helmet` headers + `express-rate-limit` (global + auth limits). |
+| **Socket.io** | Token-based auth middleware, presence tracking, `sendNotificationToUser` scaffold. |
+| **Zod Auth** | `registerSchema` + `loginSchema` applied in `auth.controller.ts`. |
 
 ---
 
-## Suggested next steps (priority order)
+## 6. Wired Discover & Public Profiles to live API
 
-1. **Wire `BuilderProfilePage` (`/discover/:id`) to the API**:
-   * Create a new backend endpoint `GET /api/v1/profile/:profileId` or `GET /api/v1/profile/user/:userId` to fetch a public profile.
-   * Add a frontend profile-fetching service in `discover.service.ts`.
-   * Update `BuilderProfilePage.tsx` to read from the API instead of `mockData.ts`.
-2. **Emit Real-Time Socket Notifications**:
-   * Hook `sendNotificationToUser` into matching/liking, project invitations, and project application accept/reject flows to trigger instant socket notifications.
-3. **Build Frontend UI for Bookmarks, Invitations, and Project Settings**:
-   * Create dashboard panels to allow users to manage invitations and view bookmarked projects.
-4. **Implement Phase 3 Collaboration Workspace**:
-   * Build the Kanban board, workspace chat, and file storage APIs and UI.
+**Discover:**
+- Replaced hardcoded profile array with `useDiscover` hook calling `GET /discover/profile`
+- Added client-side filters: role, tech-stack tags, skills tags, availability, experience range
+- Like button calls `POST /match/like/:authId` (uses `authId`, not `_id`)
+
+**BuilderProfilePage:**
+- Swapped `mockBuilders` with live `GET /api/v1/profile/:profileId`
+- Data mapping with fallbacks for missing fields
+
+**Socket Notifications:**
+- `createNotification.ts` wired `sendNotificationToUser` for likes, applications, rejections, invites
+
+---
+
+## 7. Dashboard & Workspace UI
+
+- Premium light-theme Dashboard (`bg-zinc-50/50`, glass cards, animated badges)
+- Tabs: Overview / Workspaces / Invitations / Bookmarks
+- Interactive invitation Accept/Decline directly from inbox tab
+- `GET /api/v1/project/memberships` endpoint added
+- `dashboard.service.ts` created for all REST calls
+
+---
+
+## 8. CORS + Error fixes (2026-07-04)
+
+### `Server/Src/app.ts`
+- CORS moved **before** Helmet and rate-limiter
+- Dynamic origin callback (allows `!origin` for Postman/mobile)
+- Explicit preflight `App.options('*', cors(corsOptions))`
+- Explicit `methods` + `allowedHeaders`
+- `crossOriginResourcePolicy: cross-origin` in Helmet (was blocking API responses)
+- `express.urlencoded()` added (was missing entirely)
+- Rate limit raised from 150 → 500 req/15min (dev-friendly)
+- `/health` endpoint added
+
+### `Server/Src/Middlewares/error.middleware.ts`
+- Added `CastError` handler → 400 with field name (invalid ObjectId in URL params)
+- Duplicate key → 409 Conflict with field name
+- `process.env.MODE` → `process.env.NODE_ENV` (correct env var)
+
+### `Server/Src/Modules/Auth/Controllers/auth.controller.ts`
+- Cookies now have `httpOnly: true`, `sameSite: lax`, `maxAge: 7d`, `secure: production-only`
+- `logoutUser` now calls `res.clearCookie()` with matching options
+
+### `Server/Src/Modules/Projects/Routes/Member.routes.ts`
+- Fixed route ordering: `leave` static route declared **before** `/:memberId` wildcard (was causing route collision)
+
+---
+
+## 9. Client-side UI for all features (2026-07-04)
+
+### New: My Applications page (`/my-applications`)
+- `GET /api/v1/applications/me` — all submitted applications
+- Filter pills: All / Pending / Accepted / Rejected / Withdrawn
+- Expandable cards: cover letter, portfolio/GitHub/resume links, tech stack
+- Withdraw (pending only) → `PATCH /api/v1/applications/:id/withdraw`
+- View Project → `/project/:id/workspace`
+- Added to sidebar nav with `ClipboardList` icon
+
+### New: Invitations tab in NetworkPage
+- `GET /api/v1/invitations/me` — pending invitations only
+- Accept → `PATCH /api/v1/invitations/:id/accept`
+- Decline → `PATCH /api/v1/invitations/:id/reject`
+- Cards show: project name, stage, role offered, inviter, date
+
+### Fixed: Network → Message button on matches
+- Each match card now has a **Message** button → navigates to `/messages`
+
+### Fixed: Bookmarks "View Project"
+- Was a dead `<span>` — now wired to `navigate(/project/${id}/workspace)`
+
+### Build verification
+- `npm run build` → ✅ 523 modules, 0 TypeScript errors
+
+---
+
+## 10. All MD files updated (2026-07-04)
+
+| File | What changed |
+|------|-------------|
+| `README.md` | Complete rewrite: accurate features, correct tech stack, Getting Started with env setup, updated roadmap (all completed features marked ✅) |
+| `features.md` | Complete rewrite: all 11 feature areas with backend routes AND frontend pages, client route table |
+| `Design.md` | Updated to include app interior design system (in-app pages) alongside landing page spec |
+| `anurag.md` | This file — updated with all sessions through 2026-07-04 |
+
+---
+
+## Current project state (as of 2026-07-04)
+
+### ✅ Fully implemented & working
+- Auth (register, login, logout, session restore, secure cookies)
+- Developer Profiles (create, read, update, delete, public view)
+- Discover Feed (live API, match scoring, all filters)
+- Matching (like, mutual-match, accept, reject, unmatch)
+- Real-Time Messaging (Socket.io, persistent history)
+- Projects CRUD (create, update, archive, delete with cascade)
+- Project Applications (apply, review, accept, reject, withdraw)
+- Team Members (list, add, remove, role-change, leave, transfer-owner)
+- Project Workspace (Kanban, members panel, applications review)
+- Bookmarks (add, remove, list, navigate)
+- Invitations (send, accept, reject, withdraw, inbox UI)
+- My Applications page (full tracking, withdraw)
+- Network page (Matches + Requests + Invitations tabs)
+- CORS + security hardening
+- Production build (0 TypeScript errors, 523 modules)
+
+### 🚧 Planned
+- AI Mentor chat
+- AI-powered project/developer recommendations
+- Workspace real-time team chat
+- Activity feed & notification center
+- AI Learning Roadmaps
+
+---
+
+## Notes & things to be aware of
+
+- **Intentional non-standard schema names:** `Requiremnts`, `Stage`, `Bio`, `avaliabilty`, enum `ARCHIEVED` — do NOT "fix" these without a database migration.
+- **Like endpoint target:** `POST /match/like/:authId` — the `:userId` param is the profile's `authId` (not the profile `_id`). Like button uses `profile.authId`; "View Profile" navigates by `profile._id`.
+- **Socket rooms:** Keyed by sorted user ID pair `[uid1, uid2].sort().join('-')`. Both server and client must use the same room key logic.
+- The `leave` route in `Member.routes.ts` is correctly ordered before `/:memberId` — keep it that way.
