@@ -13,10 +13,12 @@ export const discoverProfiles = asyncHandler(async (req: Request, res: Response)
         throw new ApiError(401, 'Not authenticated');
     }
 
-
-    const currentUser = await profileService.getProfile(userId);
-    if (!currentUser) {
-        throw new ApiError(404, "Current user profile not found");
+    let currentUser = null;
+    try {
+        currentUser = await profileService.getProfile(userId);
+    } catch (error) {
+        // Logged-in user has not completed onboarding/profile creation yet
+        console.log(`[Discover] User ${userId} has no profile yet. Serving default discovery feed.`);
     }
 
     const currentUserObjectId = new mongoose.Types.ObjectId(userId);
@@ -27,16 +29,31 @@ export const discoverProfiles = asyncHandler(async (req: Request, res: Response)
         ...interactedIds.map(id => new mongoose.Types.ObjectId(id))
     ];
 
-    const userSkills = currentUser.skills || [];
-    const userTechStack = currentUser.techstack || [];
+    const userSkills = currentUser?.skills || [];
+    const userTechStack = currentUser?.techstack || [];
 
+    const search = req.query.search as string;
+    const tab = req.query.tab as string;
+    const matchStage: any = {};
+
+    if (search || tab === 'All Users' || tab === 'all') {
+        // If searching or requesting all users, only exclude the logged-in user itself
+        matchStage.authId = { $ne: currentUserObjectId };
+        if (search) {
+            matchStage.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { Bio: { $regex: search, $options: 'i' } },
+                { skills: { $regex: search, $options: 'i' } },
+                { techstack: { $regex: search, $options: 'i' } }
+            ];
+        }
+    } else {
+        matchStage.authId = { $nin: excludeIds };
+    }
 
     const recommendations = await profileModel.aggregate([
         {
-            $match: {
-                _id: { $nin: excludeIds },
-                avaliabilty: true
-            }
+            $match: matchStage
         },
         {
             $addFields: {
@@ -60,9 +77,9 @@ export const discoverProfiles = asyncHandler(async (req: Request, res: Response)
         },
         {
             $addFields: {
-
                 matchScore: {
                     $add: [
+                        1, // Base score of 1 to ensure matchScore > 0 is always true
                         { $multiply: ["$commonSkillsCount", 3] },
                         { $multiply: ["$commonTechStackCount", 2] },
                         {
