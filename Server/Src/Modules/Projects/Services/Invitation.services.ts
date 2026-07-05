@@ -4,6 +4,8 @@ import projectModel from "../Models/Project.model.js";
 import memberRepository from "../Repos/Member.repos.js";
 import { DEFAULT_PERMISSIONS } from "../Types/Member.Types.js";
 import type { MemberRole } from "../Types/Member.Types.js";
+import { sendNotificationToUser } from "../../../Sockets/Handlers/notification.handler.js";
+import authModel from "../../Auth/Models/auth.model.js";
 
 // ─────────────────────────────────────────────
 // Invitation Service — Business logic layer
@@ -59,6 +61,15 @@ const sendInvitation = async (
         message,
     });
 
+    // Emit real-time notification
+    const inviterUser = await authModel.findById(invitedBy);
+    sendNotificationToUser(invitedUserId, 'notification:received', {
+        title: "New Project Invitation! 🚀",
+        message: `@${inviterUser?.username || 'A builder'} invited you to join the project "${project.title}".`,
+        type: 'PROJECT_INVITATION',
+        createdAt: new Date()
+    });
+
     return invitation;
 };
 
@@ -100,6 +111,19 @@ const acceptInvitation = async (invitationId: string, userId: string) => {
 
     // Update invitation status
     await invitationRepository.updateInvitationStatus(invitationId, "ACCEPTED");
+
+    // Emit real-time notification to the inviter
+    const [invitedUserDoc, projectDoc] = await Promise.all([
+        authModel.findById(invitation.invitedUser),
+        projectModel.findById(invitation.projectId)
+    ]);
+
+    sendNotificationToUser(invitation.invitedBy.toString(), 'notification:received', {
+        title: "Invitation Accepted 🎉",
+        message: `@${invitedUserDoc?.username || 'A builder'} accepted your invitation to join "${projectDoc?.title || 'the project'}".`,
+        type: 'INVITATION_ACCEPTED',
+        createdAt: new Date()
+    });
 
     return invitation;
 };

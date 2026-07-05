@@ -35,18 +35,18 @@ export const sendMatchRequest = async (userId: string, targetUserId: string) => 
         reverseMatch.matchedAt = new Date();
         await reverseMatch.save();
 
-        // Notify both users
+         // Notify both users
         await Promise.all([
             sendNotification({
                 recipientId: userId,
-                title: "It's a Match!",
-                message: `You and ${targetUser.username || 'a user'} have matched!`,
+                title: "It's a Match! 🎉",
+                message: `You and @${targetUser.username || 'a builder'} matched! Start a conversation.`,
                 type: 'MUTUAL_MATCH'
             }),
             sendNotification({
                 recipientId: targetUserId,
-                title: "It's a Match!",
-                message: `You and ${currentUser.username || 'a user'} have matched!`,
+                title: "It's a Match! 🎉",
+                message: `You and @${currentUser.username || 'a builder'} matched! Start a conversation.`,
                 type: 'MUTUAL_MATCH'
             })
         ]);
@@ -73,8 +73,8 @@ export const sendMatchRequest = async (userId: string, targetUserId: string) => 
 
     await sendNotification({
         recipientId: targetUserId,
-        title: 'New Like!',
-        message: 'Someone liked your profile. Swipe to find out who!',
+        title: 'New Connection Request! 🚀',
+        message: `@${currentUser.username || 'A builder'} liked your profile. Swipe to match back!`,
         type: 'NEW_LIKE'
     });
 
@@ -108,19 +108,22 @@ export const acceptMatchRequest = async (userId: string, matchId: string) => {
     match.matchedAt = new Date();
     await match.save();
 
-    const sender = await authModel.findById(match.userOne);
+    const [sender, receiver] = await Promise.all([
+        authModel.findById(match.userOne),
+        authModel.findById(match.userTwo)
+    ]);
 
     await Promise.all([
         sendNotification({
             recipientId: match.userOne.toString(),
-            title: 'Match Accepted!',
-            message: `Your match request has been accepted!`,
+            title: 'Match Accepted! 🎉',
+            message: `@${receiver?.username || 'A builder'} accepted your match request!`,
             type: 'MATCH_ACCEPTED'
         }),
         sendNotification({
             recipientId: userId,
-            title: "It's a Match!",
-            message: `You matched with ${sender?.username || 'a user'}!`,
+            title: "It's a Match! 🎉",
+            message: `You matched with @${sender?.username || 'a builder'}!`,
             type: 'MUTUAL_MATCH'
         })
     ]);
