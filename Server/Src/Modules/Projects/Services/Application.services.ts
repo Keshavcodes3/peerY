@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 import { ApiError } from "../../../Utils/ApiError.utils.js";
 import { sendNotification } from "../../../Middlewares/createNotfication.js";
+import authModel from "../../Auth/Models/auth.model.js";
 import projectRepository from "../Repos/Project.repos.js";
 import applicationRepository from "../Repos/Application.repos.js";
 import memberRepository from "../Repos/Member.repos.js";
 import { DEFAULT_PERMISSIONS } from "../Types/Member.Types.js";
 import projectModel from "../Models/Project.model.js";
+import ApplicationModel from "../Models/Application.model.js";
 
 
 // ─────────────────────────────────────────────
@@ -68,11 +70,12 @@ const applyToProject = async (
     await applicationRepository.incrementProjectApplicationCount(projectObjId);
 
     // 6. Notify project owner (fire-and-forget — loosely coupled)
+    const applicant = await authModel.findById(applicantId);
     sendNotification({
         recipientId: project.owner.toString(),
-        title: "New Application Received",
-        message: `Someone applied to your project: "${project.title}"`,
-        type: "NEW_LIKE", // extend this enum in createNotfication.ts as needed
+        title: "New Application! 📄",
+        message: `@${applicant?.username || 'A builder'} applied to join project "${project.title}"`,
+        type: "NEW_LIKE",
     }).catch(console.error);
 
     return application;
@@ -201,10 +204,11 @@ const rejectApplication = async (
     });
 
     // Notify applicant (fire-and-forget)
+    const project = await projectModel.findById(application.project);
     sendNotification({
         recipientId: application.applicant.toString(),
-        title: "Application Update",
-        message: `Your application has been rejected.`,
+        title: "Application Declined ❌",
+        message: `Your application to project "${project?.title || 'the project'}" has been declined.`,
         type: "NEW_LIKE",
     }).catch(console.error);
 
@@ -246,10 +250,14 @@ const withdrawApplication = async (applicationId: string, requesterId: string) =
     });
 
     // Notify project owner (fire-and-forget)
+    const [applicant, project] = await Promise.all([
+        authModel.findById(application.applicant),
+        projectModel.findById(application.project)
+    ]);
     sendNotification({
         recipientId: application.owner.toString(),
-        title: "Application Withdrawn",
-        message: `An applicant has withdrawn their application from your project.`,
+        title: "Application Withdrawn ↩️",
+        message: `@${applicant?.username || 'A builder'} has withdrawn their application from project "${project?.title || 'the project'}".`,
         type: "NEW_LIKE",
     }).catch(console.error);
 
@@ -292,17 +300,55 @@ const acceptApplication = async (applicationId: string, requesterId: string) => 
     });
     if (alreadyMember) throw new ApiError(409, "This user is already a member of the project");
 
+    // Check if MongoDB deployment supports transactions (Replica Set required)
     const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
+        session.startTransaction();
+
+        // 1. Mark application ACCEPTED (with session)
+        await ApplicationModel.findByIdAndUpdate(
+            applicationId,
+            { status: "ACCEPTED", acceptedAt: new Date() },
+            { session }
+        );
+
+        // 2. Create member record (with session)
+        const MemberModel = (await import("../Models/Member.model.js")).default;
+        await MemberModel.create(
+            [
+                {
+                    project: application.project,
+                    user: application.applicant,
+                    role: "MEMBER",
+                    permissions: DEFAULT_PERMISSIONS["MEMBER"],
+                    status: "ACTIVE",
+                    joinedBy: "APPLICATION",
+                    joinedAt: new Date(),
+                }
+            ],
+            { session }
+        );
+
+        // 3. Increment project member count (with session)
+        await projectModel.findByIdAndUpdate(
+            application.project,
+            { $inc: { membersCount: 1 } },
+            { session }
+        );
+
+        await session.commitTransaction();
+    } catch (err: any) {
+        await session.abortTransaction();
+        console.warn("[MDB Transaction Warn] Transaction failed, falling back to standalone execution pattern. Error:", err.message);
+
+        // Standalone fallback: execute operations without transaction session
         // 1. Mark application ACCEPTED
         await applicationRepository.updateApplicationById(applicationId, {
             status: "ACCEPTED",
             acceptedAt: new Date(),
         } as any);
 
-        // 2. Create member record with role-derived permissions
+        // 2. Create member record
         await memberRepository.createMember({
             project: application.project,
             user: application.applicant,
@@ -316,23 +362,18 @@ const acceptApplication = async (applicationId: string, requesterId: string) => 
         // 3. Increment project member count
         await projectModel.findByIdAndUpdate(
             application.project,
-            { $inc: { membersCount: 1 } },
-            { session }
+            { $inc: { membersCount: 1 } }
         );
-
-        await session.commitTransaction();
-    } catch (err) {
-        await session.abortTransaction();
-        throw new ApiError(500, "Failed to accept application. Transaction rolled back.");
     } finally {
         session.endSession();
     }
 
     // Notify applicant (fire-and-forget — outside transaction)
+    const project = await projectModel.findById(application.project);
     sendNotification({
         recipientId: application.applicant.toString(),
         title: "Application Accepted! 🎉",
-        message: "Your application has been accepted. Welcome to the project!",
+        message: `Your application to project "${project?.title || 'the project'}" was accepted! Welcome to the team.`,
         type: "NEW_LIKE",
     }).catch(console.error);
 
