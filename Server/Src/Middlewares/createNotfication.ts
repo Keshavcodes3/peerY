@@ -1,3 +1,5 @@
+import { sendNotificationToUser } from '../Sockets/Handlers/notification.handler.js';
+
 interface NotificationPayload {
     recipientId: string;
     title: string;
@@ -7,10 +9,15 @@ interface NotificationPayload {
 
 export const sendNotification = async (payload: NotificationPayload) => {
     try {
-        // TODO: Replace with actual DB insertion with socket.io or firebase
         console.log(`[Notification to ${payload.recipientId}]: ${payload.title} - ${payload.message}`);
-
-
+        
+        // Emit real-time socket event
+        sendNotificationToUser(payload.recipientId, 'notification:received', {
+            title: payload.title,
+            message: payload.message,
+            type: payload.type,
+            createdAt: new Date()
+        });
     } catch (error) {
         console.error("Failed to send notification", error);
     }

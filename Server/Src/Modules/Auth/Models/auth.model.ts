@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from 'mongoose'
+import mongoose, { Schema, model, type Document } from 'mongoose'
 
 import type { AuthRegister } from "../../../Types/Auth.Types.ts"
 
@@ -50,6 +50,7 @@ const authSchema = new Schema<IRegister>({
   versionKey: false
 })
 
-const authModel = model("user", authSchema)
+const authModel = model("user", authSchema);
+model("User", authSchema);
 
-export default authModel
+export default authModel;

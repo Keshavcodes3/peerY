@@ -131,3 +131,18 @@ export const deleteProfile = async (userId: string) => {
   }
   return true;
 };
+
+/**
+ * Gets a profile by its MongoDB ID.
+ * 
+ * @param {string} profileId - MongoDB ID of the profile.
+ * @returns {Promise<any>} Profile document.
+ * @throws {ApiError} 404 if profile not found.
+ */
+export const getProfileById = async (profileId: string) => {
+  const profile = await profileRepositary.findById(profileId);
+  if (!profile) {
+    throw new ApiError(404, 'Profile not found');
+  }
+  return profile;
+};

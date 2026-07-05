@@ -1,3 +1,4 @@
+import express from 'express';
 import { verifyAuth } from "../../../Middlewares/auth.middleware.js";
 import {
     createProject,
@@ -7,13 +8,14 @@ import {
     updateProjectController,
     deleteProjectController,
     archiveProjectController,
+    getMyMembershipsController,
 } from "../Controllers/project.controller.js";
-import express from 'express'
 
 const projectRouter = express.Router()
 
 projectRouter.post('/create', verifyAuth, createProject)
 projectRouter.get('/myProjects', verifyAuth, getMyProjectController)
+projectRouter.get('/memberships', verifyAuth, getMyMembershipsController)
 projectRouter.get("/", verifyAuth, getProjectController)
 projectRouter.get("/:projectId", verifyAuth, getProjectById)
 

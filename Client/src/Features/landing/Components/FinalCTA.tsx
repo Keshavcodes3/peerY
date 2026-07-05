@@ -1,4 +1,5 @@
 import { Button } from "../../../components/ui/button"
+import { Link } from "react-router-dom"
 
 export function FinalCTA() {
   return (
@@ -10,9 +11,11 @@ export function FinalCTA() {
         Stop building alone. Find developers who share your stack, your timezone, and your drive.
       </p>
       <div className="pt-4">
-        <Button size="lg" className="rounded-full text-base font-semibold px-8 h-12 bg-white text-black hover:bg-zinc-200 shadow-lg">
-          Start Building Now
-        </Button>
+        <Link to="/register">
+          <Button size="lg" className="rounded-full text-base font-semibold px-8 h-12 bg-white text-black hover:bg-zinc-200 shadow-lg cursor-pointer">
+            Start Building Now
+          </Button>
+        </Link>
       </div>
     </section>
   )

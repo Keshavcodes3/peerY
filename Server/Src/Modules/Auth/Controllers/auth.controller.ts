@@ -11,7 +11,12 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
   }
 
   const { user, token } = await authService.registerUser(parsed.data.body);
-  res.cookie('token', token)
+  res.cookie('token', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    secure: process.env.NODE_ENV === 'production',
+  });
   res.status(201).json({
     success: true,
     message: 'User registered successfully',
@@ -31,7 +36,12 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 
   const { email, password } = parsed.data.body;
   const { user, token } = await authService.loginUser(email, password);
-  res.cookie('token', token)
+  res.cookie('token', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    secure: process.env.NODE_ENV === 'production',
+  });
   res.status(200).json({
     success: true,
     message: 'Logged in successfully',
@@ -64,8 +74,11 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
 
 
 export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
-  // If we were using cookies, we'd do res.clearCookie('token') here.
-  // For standard bearer tokens, the client just removes it.
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
   res.status(200).json({
     success: true,
     message: 'Logged out successfully'

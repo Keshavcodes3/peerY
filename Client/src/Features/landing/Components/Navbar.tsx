@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../../../components/ui/button"
 import { Menu, X, ArrowRight } from "lucide-react"
+import { Link } from "react-router-dom"
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -91,17 +92,19 @@ export function Navbar() {
             >
               Login
             </a>
-            <Button 
-              variant="default" 
-              className={`rounded-full font-semibold transition-all duration-300 flex items-center gap-1.5 ${
-                isScrolled 
-                  ? "h-8 px-4 text-xs bg-zinc-950 hover:bg-zinc-800" 
-                  : "h-9 px-5 text-sm bg-zinc-950 hover:bg-zinc-800"
-              }`}
-            >
-              <span>Start Building</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
+            <Link to="/register">
+              <Button 
+                variant="default" 
+                className={`rounded-full font-semibold transition-all duration-300 flex items-center gap-1.5 ${
+                  isScrolled 
+                    ? "h-8 px-4 text-xs bg-zinc-950 hover:bg-zinc-800" 
+                    : "h-9 px-5 text-sm bg-zinc-950 hover:bg-zinc-800"
+                }`}
+              >
+                <span>Start Building</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
           </motion.div>
 
           {/* Mobile Menu Toggle Button */}
@@ -148,13 +151,14 @@ export function Navbar() {
                 >
                   Login
                 </a>
-                <Button 
-                  className="w-full rounded-full py-5 bg-zinc-950 text-white hover:bg-zinc-800 flex items-center justify-center gap-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span>Start Building</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
+                <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                  <Button 
+                    className="w-full rounded-full py-5 bg-zinc-950 text-white hover:bg-zinc-800 flex items-center justify-center gap-2"
+                  >
+                    <span>Start Building</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
               </div>
             </motion.div>
           </div>

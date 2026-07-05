@@ -7,8 +7,11 @@ import authRepositary from "../../Auth/Repos/auth.repositary.js";
 import projectRepository from "../Repos/Project.repos.js";
 import projectService from "../Services/Project.services.js";
 import projectModel from "../Models/Project.model.js";
+import MemberModel from "../Models/Member.model.js";
 import mongoose from "mongoose";
+import { DEFAULT_PERMISSIONS } from "../Types/Member.Types.js";
 import {
+    createProjectValidationSchema,
     updateProjectValidationSchema,
     projectIdParamSchema
 } from "../Validation/Project.validation.js";
@@ -23,10 +26,26 @@ export const createProject = asyncHandler(async (req: Request, res: Response) =>
         throw new ApiError(404, "user not found")
     }
 
-    const project = await projectRepository.createProject(req.body, userId)
+    const parsed = createProjectValidationSchema.safeParse({ body: req.body });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const project = await projectRepository.createProject(parsed.data.body, userId)
     if (!project) {
         throw new ApiError(400, "Something error occured")
     }
+
+    // Auto-create OWNER membership in the Member model
+    await MemberModel.create({
+        project: (project as any)._id,
+        user: userId,
+        role: "OWNER",
+        permissions: DEFAULT_PERMISSIONS.OWNER,
+        status: "ACTIVE",
+        joinedBy: "OWNER"
+    });
+
     return res.status(201).json({
         success: true,
         message: "project has created",
@@ -47,7 +66,8 @@ export const getProjectController = asyncHandler(async (req: Request, res: Respo
                 sort == "oldest" ?
                     { createdAt: 1 } : { createdAt: -1 }
             )
-            .limit(Number(skip))
+            .skip(skip)
+            .limit(Number(limit))
             .lean(),
 
         projectModel.countDocuments(queryFilter)
@@ -85,6 +105,28 @@ export const getMyProjectController = asyncHandler(async (req: Request, res: Res
         message: "all project fetched successfully",
         allProjects: myAllProject
     })
+})
+
+export const getMyMembershipsController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access")
+    }
+    const user = await authRepositary.findById(userId)
+    if (!user) {
+        throw new ApiError(400, "User not found")
+    }
+    
+    const memberships = await MemberModel.find({ user: userId, status: "ACTIVE" }).populate("project").lean();
+    const projects = memberships
+        .map((m: any) => m.project)
+        .filter((p: any) => p !== null && p !== undefined);
+
+    return res.status(200).json({
+        success: true,
+        message: "memberships fetched successfully",
+        projects
+    });
 })
 
 export const getProjectById = asyncHandler(async (req: Request, res: Response) => {

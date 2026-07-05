@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import type { AuthUser } from '../Types/express.js';
 
 export const verifyAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -29,8 +30,8 @@ export const verifyAuth = (req: Request, res: Response, next: NextFunction) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
     
-    // NOTE: Ensure your Express Request interface is extended to include 'user'
-    req.user = decoded; 
+    // Attach decoded payload to req.user (typed as AuthUser via express.d.ts augmentation)
+    req.user = decoded as AuthUser;
     
     next();
   } catch (error) {

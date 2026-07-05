@@ -87,11 +87,16 @@ const deleteProfile = async (userId: string) => {
   return await profileModel.findOneAndDelete({ authId: userId });
 };
 
+const findById = async (profileId: string) => {
+  return await profileModel.findById(profileId);
+};
+
 const profileRepositary = {
   returnProfileData,
   createProfile,
   findByUserId,
   findByName,
+  findById,
   updateProfile,
   deleteProfile
 };

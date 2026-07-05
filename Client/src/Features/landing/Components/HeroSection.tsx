@@ -9,6 +9,7 @@ import {
   TrendingUp,
   ArrowRight
 } from "lucide-react"
+import { Link } from "react-router-dom"
 
 // Four curated journey states
 const JOURNEY_STEPS = [
@@ -210,20 +211,24 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-wrap gap-4"
           >
-            <Button
-              size="lg"
-              className="rounded-full text-base font-semibold px-8 h-12 bg-zinc-950 text-white hover:bg-zinc-800 transition-all duration-300 shadow-sm flex items-center gap-2 group"
-            >
-              Start Building
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="rounded-full text-base font-semibold px-8 h-12 border-zinc-200 bg-transparent text-zinc-900 hover:bg-zinc-50 transition-all duration-300"
-            >
-              Explore Projects
-            </Button>
+            <Link to="/register">
+              <Button
+                size="lg"
+                className="rounded-full text-base font-semibold px-8 h-12 bg-zinc-950 text-white hover:bg-zinc-800 transition-all duration-300 shadow-sm flex items-center gap-2 group cursor-pointer"
+              >
+                Start Building
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+            <Link to="/discover">
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full text-base font-semibold px-8 h-12 border-zinc-200 bg-transparent text-zinc-900 hover:bg-zinc-50 transition-all duration-300 cursor-pointer"
+              >
+                Explore Projects
+              </Button>
+            </Link>
           </motion.div>
         </div>
 

@@ -1,0 +1,9 @@
+{
+  "name": "peery-monorepo",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:server": "npm --prefix Server run dev",
+    "dev:client": "npm --prefix Client run dev",
+    "dev": "npx -y concurrently \"npm run dev:server\" \"npm run dev:client\""
+  }
+}

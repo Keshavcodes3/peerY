@@ -5,7 +5,7 @@ import type { Types } from "mongoose";
 import { ApiError } from "../../../Utils/ApiError.utils.js";
 import projectService, { type projectQuery } from "../Services/Project.services.js";
 
-const createProject = async (projectData: ProjectTypes, ownerId: Types.ObjectId) => {
+const createProject = async (projectData: Partial<ProjectTypes>, ownerId: Types.ObjectId) => {
     const {
         title,
         description,

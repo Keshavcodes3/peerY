@@ -51,9 +51,9 @@ const findUserInvitations = async (
     skip: number,
     limit: number
 ) => {
-    const [invitations, total] = await Promise.all([
+    const [rawInvitations, total] = await Promise.all([
         InvitationModel.find({ invitedUser: userId, status: "PENDING" })
-            .populate("projectId", "title banner category Stage techStack")
+            .populate("projectId", "title banner category Stage techStack commitment description")
             .populate("invitedBy", "username email")
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -61,8 +61,17 @@ const findUserInvitations = async (
             .lean(),
         InvitationModel.countDocuments({ invitedUser: userId, status: "PENDING" }),
     ]);
+
+    // Rename 'projectId' to 'project' so the client can access invite.project
+    const invitations = rawInvitations.map((inv: any) => ({
+        ...inv,
+        project: inv.projectId,
+        projectId: undefined,
+    }));
+
     return { invitations, total };
 };
+
 
 const updateInvitationStatus = async (
     invitationId: string | Types.ObjectId,

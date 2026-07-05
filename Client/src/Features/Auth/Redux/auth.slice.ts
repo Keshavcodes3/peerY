@@ -29,7 +29,11 @@ const authSlice = createSlice({
             state.error = action.payload;
         },
         setCredentials: (state, action: PayloadAction<{ user: UserDto }>) => {
-            state.user = action.payload.user;
+            const u = action.payload.user;
+            if (u && u._id && !u.userId) {
+                u.userId = u._id;
+            }
+            state.user = u;
             state.isAuthenticated = true;
             state.error = null;
         },

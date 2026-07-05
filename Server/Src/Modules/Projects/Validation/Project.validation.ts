@@ -9,8 +9,8 @@ const objectIdSchema = z.string().refine((val) => Types.ObjectId.isValid(val), {
 const requirementSchema = z.object({
     title: z.string().max(60, "Title too long").nonempty("Requirement title required"),
     description: z.string().max(500, "Description too long").nonempty("Requirement description required"),
-    role: z.string().min(8, "Role name too short").max(20, "Role name too long").nonempty("Requirement role required"),
-    skills: z.array(z.string()).optional(),
+    role: z.string().min(3, "Role name too short").max(20, "Role name too long").nonempty("Requirement role required"),
+    skills: z.array(z.string()).default([]),
     openings: z.number().min(1).default(1),
 });
 
