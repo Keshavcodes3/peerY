@@ -112,7 +112,7 @@ export const updateProfile = async (userId: string, updateData: Partial<authProf
   const currentExp = sanitized.experience || profile.experience;
   const currentProj = profile.totalProject || 0;
   const currentCont = profile.totalContribution || 0;
-  sanitized.Rank = calculateRank(currentExp, currentProj, currentCont);
+  sanitized.Rank = calculateRank(currentExp, Number(currentProj), Number(currentCont));
 
   return await profileRepositary.updateProfile(userId, sanitized);
 };
@@ -130,4 +130,19 @@ export const deleteProfile = async (userId: string) => {
     throw new ApiError(404, 'Profile not found');
   }
   return true;
+};
+
+/**
+ * Gets a profile by its MongoDB ID.
+ * 
+ * @param {string} profileId - MongoDB ID of the profile.
+ * @returns {Promise<any>} Profile document.
+ * @throws {ApiError} 404 if profile not found.
+ */
+export const getProfileById = async (profileId: string) => {
+  const profile = await profileRepositary.findById(profileId);
+  if (!profile) {
+    throw new ApiError(404, 'Profile not found');
+  }
+  return profile;
 };
