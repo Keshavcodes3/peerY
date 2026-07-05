@@ -1,7 +1,16 @@
 import type { ApplicationInterface } from "../Types/Application.Types.js";
 import { Document, Types, model, Schema } from "mongoose";
 
-export interface IApplication extends ApplicationInterface, Document {
+export interface IApplication extends Omit<ApplicationInterface, 'projectId'>, Document {
+    project: Types.ObjectId;
+    owner: Types.ObjectId;
+    coverLetter?: string;
+    resume?: string;
+    rejectionReason?: string;
+    appliedAt: Date;
+    withdrawnAt?: Date;
+    rejectedAt?: Date;
+    acceptedAt?: Date;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, model, type Document } from "mongoose";
 import type { authProfile } from "../../../Types/Auth.Types.js";
 
 export interface IauthProfile extends authProfile, Document {
@@ -68,7 +68,7 @@ const profileSchema = new Schema<IauthProfile>({
   },
   intent: {
     type: String,
-    select: false,
+    select: true,
     index: true
   },
   //?
@@ -100,7 +100,7 @@ const profileSchema = new Schema<IauthProfile>({
   timestamps: true
 })
 
-profileSchema.index({ name: 1 })
+
 
 profileSchema.index({ avatar: 1 })
 profileSchema.index({ college: 1 })
