@@ -26,7 +26,7 @@ export const applyToProjectController = asyncHandler(async (req: Request, res: R
 
     const parsed = applyToProjectSchema.safeParse({ params: req.params, body: req.body });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId } = parsed.data.params;
@@ -55,7 +55,7 @@ export const getMyApplicationsController = asyncHandler(async (req: Request, res
 
     const parsed = getMyApplicationsSchema.safeParse({ query: req.query });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { page, limit } = parsed.data.query;
@@ -78,7 +78,7 @@ export const getProjectApplicationsController = asyncHandler(async (req: Request
 
     const parsed = getProjectApplicationsSchema.safeParse({ params: req.params, query: req.query });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId } = parsed.data.params;
@@ -109,7 +109,7 @@ export const getApplicationByIdController = asyncHandler(async (req: Request, re
 
     const parsed = applicationIdParamSchema.safeParse({ params: req.params });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { applicationId } = parsed.data.params;
@@ -132,7 +132,7 @@ export const rejectApplicationController = asyncHandler(async (req: Request, res
 
     const parsed = rejectApplicationSchema.safeParse({ params: req.params, body: req.body });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { applicationId } = parsed.data.params;
@@ -157,7 +157,7 @@ export const withdrawApplicationController = asyncHandler(async (req: Request, r
 
     const parsed = applicationIdParamSchema.safeParse({ params: req.params });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { applicationId } = parsed.data.params;
@@ -180,7 +180,7 @@ export const acceptApplicationController = asyncHandler(async (req: Request, res
 
     const parsed = acceptApplicationSchema.safeParse({ params: req.params });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { applicationId } = parsed.data.params;
