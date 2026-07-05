@@ -13,7 +13,7 @@ interface LikeOutcome {
  * On a successful like the profile is optimistically removed from the list
  * (the server won't recommend an already-interacted user again anyway).
  */
-export function useDiscover() {
+export function useDiscover(searchQuery?: string, activeTab?: string) {
     const [profiles, setProfiles] = useState<DiscoverProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -23,7 +23,7 @@ export function useDiscover() {
         try {
             setIsLoading(true);
             setError(null);
-            const data = await discoverService.getRecommendedProfiles();
+            const data = await discoverService.getRecommendedProfiles(searchQuery, activeTab);
             setProfiles(data);
         } catch (err: any) {
             const message =
@@ -35,7 +35,7 @@ export function useDiscover() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [searchQuery, activeTab]);
 
     useEffect(() => {
         fetchProfiles();
