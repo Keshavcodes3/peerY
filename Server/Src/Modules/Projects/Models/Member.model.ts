@@ -71,11 +71,10 @@ memberSchema.index({ project: 1, role: 1 });
 /**
  * Auto-populate permissions from role on create/update if not explicitly set.
  */
-memberSchema.pre("save", function (next: any) {
+memberSchema.pre("save", async function () {
     if (this.isModified("role") || this.isNew) {
         this.permissions = DEFAULT_PERMISSIONS[this.role];
     }
-    next();
 });
 
 const MemberModel = model<IMember>("Member", memberSchema);
