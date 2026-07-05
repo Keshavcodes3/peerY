@@ -1,9 +1,14 @@
 import { api, ENDPOINT } from "../../../App/api";
-import type { DiscoverProfile, DiscoverResponse, LikeResult } from "../types/discover.types";
+import type { DiscoverProfile, DiscoverResponse, LikeResult, PublicProfileResponse } from "../types/discover.types";
 
 /** GET /api/v1/discover/profile — recommended profiles for the current user. */
-const getRecommendedProfiles = async (): Promise<DiscoverProfile[]> => {
-    const response = await api.get<DiscoverResponse>(ENDPOINT.discover.profiles);
+const getRecommendedProfiles = async (search?: string, tab?: string): Promise<DiscoverProfile[]> => {
+    const params: any = {};
+    if (search) params.search = search;
+    if (tab) params.tab = tab;
+    const response = await api.get<DiscoverResponse>(ENDPOINT.discover.profiles, {
+        params
+    });
     return response.data.profiles ?? [];
 };
 
@@ -21,9 +26,16 @@ const likeUser = async (userId: string): Promise<LikeResult> => {
     };
 };
 
+/** GET /api/v1/profile/:profileId — fetch any user's public profile details. */
+const getPublicProfile = async (profileId: string): Promise<PublicProfileResponse> => {
+    const response = await api.get<PublicProfileResponse>(ENDPOINT.profile.get(profileId));
+    return response.data;
+};
+
 const discoverService = {
     getRecommendedProfiles,
     likeUser,
+    getPublicProfile,
 };
 
 export default discoverService;

@@ -14,6 +14,7 @@ export interface DiscoverProfile {
     experience: string;
     Rank: string;
     matchScore: number;
+    avaliabilty?: boolean;
 }
 
 export interface DiscoverResponse {
@@ -27,4 +28,53 @@ export interface LikeResult {
     success: boolean;
     message: string;
     mutual: boolean;
+}
+
+export interface PublicProfile {
+    _id: string;
+    authId: string;
+    name: string;
+    avatar?: string;
+    skills?: string[];
+    socials?: string[];
+    Bio?: string;
+    college?: string;
+    experience: string;
+    techstack?: string[];
+    avaliabilty?: boolean;
+    intent?: string;
+    followerCount?: number;
+    followingCount?: number;
+    totalContribution?: number;
+    totalProject?: number;
+    Achievements?: string[];
+    Rank?: string;
+}
+
+export interface PublicProject {
+    _id: string;
+    title: string;
+    description: string;
+    banner?: string;
+    Stage: 'IDEA' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIEVED';
+    techStack: string[];
+    commitment?: string;
+    Requiremnts?: Array<{
+        title: string;
+        description: string;
+        role: string;
+        skills?: string[];
+        openings: number;
+    }>;
+    membersCount: number;
+    applicationCount: number;
+    bookMarksCount: number;
+    views: number;
+    isArchived: boolean;
+}
+
+export interface PublicProfileResponse {
+    success: boolean;
+    profile: PublicProfile;
+    projects: PublicProject[];
 }
