@@ -18,7 +18,7 @@ export const sendMatchRequest = asyncHandler(async (req: Request, res: Response)
         throw new ApiError(400, 'Target user ID is required');
     }
 
-    const result = await matchService.sendMatchRequest(userId, targetUserId);
+    const result = await matchService.sendMatchRequest(userId, targetUserId as string);
 
     const statusCode = result.mutual ? 200 : 201;
     const message = result.mutual ? 'Mutual match created!' : 'Match request sent successfully';
@@ -45,7 +45,7 @@ export const acceptMatchRequest = asyncHandler(async (req: Request, res: Respons
         throw new ApiError(400, 'Match ID is required');
     }
 
-    const match = await matchService.acceptMatchRequest(userId, matchId);
+    const match = await matchService.acceptMatchRequest(userId, matchId as string);
 
     return res.status(200).json({
         success: true,
@@ -69,7 +69,7 @@ export const rejectMatchRequest = asyncHandler(async (req: Request, res: Respons
         throw new ApiError(400, 'Match ID is required');
     }
 
-    await matchService.rejectMatchRequest(userId, matchId);
+    await matchService.rejectMatchRequest(userId, matchId as string);
 
     return res.status(200).json({
         success: true,
@@ -92,7 +92,7 @@ export const unmatch = asyncHandler(async (req: Request, res: Response) => {
         throw new ApiError(400, 'Match ID is required');
     }
 
-    const match = await matchService.unmatch(userId, matchId);
+    const match = await matchService.unmatch(userId, matchId as string);
 
     return res.status(200).json({
         success: true,
