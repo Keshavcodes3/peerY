@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useTransform, AnimatePresence } from 'framer-motion';
 import { type BuilderProfile } from '../data/mockData';
 import BuilderCard from './BuilderCard';
 import SwipeControls from './SwipeControls';
@@ -67,7 +66,6 @@ export default function SwipeDeck({ profiles, onMatch }: SwipeDeckProps) {
                     {stack.map((profile, index) => {
                         const isTop    = index === 0;
                         const isSecond = index === 1;
-                        const isThird  = index === 2;
 
                         if (index > 2) return null;
 
