@@ -2,13 +2,16 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import onlineUsers from "./onlineUsers.js";
 import { handlePresence } from "./Handlers/presence.handler.js";
+import MessageModel from "../Modules/Messages/Models/Message.model.js";
 
 let io: Server;
 
 export const initSocket = (server: any) => {
     io = new Server(server, {
         cors: {
-            origin: process.env.CLIENT_URL || "http://localhost:5173",
+            origin: (origin, callback) => {
+                callback(null, true);
+            },
             credentials: true,
         },
     });
@@ -53,6 +56,40 @@ export const initSocket = (server: any) => {
             // Register presence handlers
             handlePresence(socket, io);
         }
+
+        // ─── Direct chat message relay ───────────────────────────
+        // Client emits: { matchId: string, text: string }
+        // Server relays to all sockets in that match room.
+        socket.on("direct:message", async (data: { matchId: string; text: string }) => {
+            if (!userId || !data?.matchId || !data?.text) return;
+            try {
+                // Save to MongoDB first
+                const savedMessage = await MessageModel.create({
+                    matchId: data.matchId,
+                    sender: userId,
+                    text: data.text
+                });
+
+                const payload = {
+                    matchId: data.matchId,
+                    from: userId,
+                    text: data.text,
+                    ts: new Date(savedMessage.createdAt).getTime(),
+                    id: savedMessage._id.toString()
+                };
+
+                // Broadcast to everyone in the room (including sender for consistency)
+                io.to(data.matchId).emit("direct:message", payload);
+            } catch (err) {
+                console.error("Failed to save and relay direct message:", err);
+            }
+        });
+
+        // Join a match room so messages are scoped per match
+        socket.on("join:match", (matchId: string) => {
+            if (!matchId) return;
+            socket.join(matchId);
+        });
 
         socket.on("disconnect", () => {
             if (userId) {
