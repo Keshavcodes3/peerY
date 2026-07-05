@@ -55,5 +55,31 @@ export const ENDPOINT = {
         unmatch: (matchId: string) => `/api/v1/match/${matchId}/unmatch`,
         getAll: '/api/v1/match',
         pending: '/api/v1/match/pending'
+    },
+    projects: {
+        create: '/api/v1/project/create',
+        update: (projectId: string) => `/api/v1/project/${projectId}`,
+        delete: (projectId: string) => `/api/v1/project/${projectId}`,
+        archive: (projectId: string) => `/api/v1/project/${projectId}/archive`,
+        myProjects: '/api/v1/project/myProjects',
+        memberships: '/api/v1/project/memberships',
+        apply: (projectId: string) => `/api/v1/project/${projectId}/apply`,
+    },
+    applications: {
+        myApplications: '/api/v1/applications/me',
+        withdraw: (appId: string) => `/api/v1/applications/${appId}/withdraw`,
+    },
+    bookmarks: {
+        add: (projectId: string) => `/api/v1/project/${projectId}/bookmark`,
+        remove: (projectId: string) => `/api/v1/project/${projectId}/bookmark`,
+        getMyBookmarks: '/api/v1/bookmarks/me',
+    },
+    invitations: {
+        getMyInvitations: '/api/v1/invitations/me',
+        accept: (invId: string) => `/api/v1/invitations/${invId}/accept`,
+        reject: (invId: string) => `/api/v1/invitations/${invId}/reject`,
+    },
+    messages: {
+        history: (matchId: string) => `/api/v1/messages/${matchId}`,
     }
 }

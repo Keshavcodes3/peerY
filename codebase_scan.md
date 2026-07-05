@@ -128,7 +128,7 @@ The Vite client uses a modern modular features layout:
     *   Authenticated dashboard displaying greeting cards, workspace shortcuts, active matches, and logout utility.
 4.  **`Discover/`**
     *   **DiscoverPage:** Renders tinder-like matching cards fetching recommendations from `GET /discover/profile` with live connect triggers (`POST /match/like/:userId`).
-    *   **BuilderProfilePage (`/discover/:id`):** Displays comprehensive user stats, DNA charts, and Github metrics. *Currently reads mock data* (`mockData.ts`) instead of the API.
+    *   **BuilderProfilePage (`/discover/:id`):** Displays comprehensive user stats, DNA charts, and Github metrics. Wired to the live API (`GET /api/v1/profile/:profileId`) to retrieve real database profiles and user project details.
 
 ---
 
@@ -136,14 +136,12 @@ The Vite client uses a modern modular features layout:
 
 According to the updated planning files, the remaining development objectives are:
 
-### P0 Gaps (Critical Client-Backend Integration)
-1.  **Wire BuilderProfilePage (`/discover/:id`):** Transition the profile page details from `mockData.ts` to API-driven profiles. This requires implementing a backend public profile retrieval endpoint (`GET /api/v1/profile/:profileId`).
+### ✅ Completed Integration Milestones
+1.  **Wired BuilderProfilePage (`/discover/:id`):** Transitioned the profile page details to API-driven profiles, pulling live data from `GET /api/v1/profile/:profileId`.
+2.  **Socket Event Emissions:** Integrated `sendNotificationToUser` inside the core notification flow and invitation services to emit live socket updates during likes, mutual matches, applications, and invitations.
 
-### P1 Gaps (Real-time Socket Event Triggers)
-2.  **Socket Event Emissions:** Call `sendNotificationToUser` inside module controller/service layers to emit socket updates during likes, mutual matches, project applications, and invitations.
-
-### P2 Gaps (Client UI Expansion)
+### 🚧 P2 Gaps (Client UI Expansion)
 3.  **UI Pages for New Features:** Build pages and dashboards on the React frontend for managing bookmarks, project invitations, and project owner settings (edit/archive/delete).
 
-### P3 Gaps (Collaboration Workspace)
+### 🚧 P3 Gaps (Collaboration Workspace)
 4.  **Workspace Features:** Implement Kanban boards, group chat, and file storage.
