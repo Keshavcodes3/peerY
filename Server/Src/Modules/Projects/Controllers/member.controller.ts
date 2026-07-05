@@ -26,7 +26,7 @@ export const getProjectMembersController = asyncHandler(async (req: Request, res
 
     const parsed = getMembersSchema.safeParse({ params: req.params, query: req.query });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId } = parsed.data.params;
@@ -58,7 +58,7 @@ export const getMemberByIdController = asyncHandler(async (req: Request, res: Re
 
     const parsed = memberParamSchema.safeParse({ params: req.params });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId, memberId } = parsed.data.params;
@@ -81,7 +81,7 @@ export const updateMemberRoleController = asyncHandler(async (req: Request, res:
 
     const parsed = updateMemberRoleSchema.safeParse({ params: req.params, body: req.body });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId, memberId } = parsed.data.params;
@@ -106,7 +106,7 @@ export const removeMemberController = asyncHandler(async (req: Request, res: Res
 
     const parsed = removeMemberSchema.safeParse({ params: req.params });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId, memberId } = parsed.data.params;
@@ -129,7 +129,7 @@ export const leaveProjectController = asyncHandler(async (req: Request, res: Res
 
     const parsed = getMembersSchema.pick({ params: true }).safeParse({ params: req.params });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId } = parsed.data.params;
@@ -152,7 +152,7 @@ export const transferOwnerController = asyncHandler(async (req: Request, res: Re
 
     const parsed = transferOwnerSchema.safeParse({ params: req.params, body: req.body });
     if (!parsed.success) {
-        throw new ApiError(400, parsed.error.errors.map((e) => e.message).join(", "));
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
     }
 
     const { projectId } = parsed.data.params;

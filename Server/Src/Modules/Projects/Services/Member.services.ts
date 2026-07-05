@@ -242,9 +242,38 @@ const transferOwnership = async (
     if (!newOwnerMember) throw new ApiError(404, "New owner must be an active member of the project");
 
     const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
+        session.startTransaction();
+
+        const MemberModel = (await import("../Models/Member.model.js")).default;
+
+        // Demote current owner to ADMIN (with session)
+        await MemberModel.findByIdAndUpdate(
+            (currentOwnerMember as any)._id,
+            { role: "ADMIN", permissions: DEFAULT_PERMISSIONS["ADMIN"] },
+            { session }
+        );
+
+        // Promote new owner (with session)
+        await MemberModel.findByIdAndUpdate(
+            (newOwnerMember as any)._id,
+            { role: "OWNER", permissions: DEFAULT_PERMISSIONS["OWNER"] },
+            { session }
+        );
+
+        // Update project.owner field (with session)
+        await projectModel.findByIdAndUpdate(
+            projectId,
+            { owner: newOwnerId },
+            { session }
+        );
+
+        await session.commitTransaction();
+    } catch (err: any) {
+        await session.abortTransaction();
+        console.warn("[MDB Transaction Warn] transferOwnership transaction failed, falling back to standalone execution pattern. Error:", err.message);
+
+        // Standalone fallback: execute operations without transaction session
         // Demote current owner to ADMIN
         await memberRepository.updateMemberById((currentOwnerMember as any)._id, {
             role: "ADMIN",
@@ -260,14 +289,8 @@ const transferOwnership = async (
         // Update project.owner field
         await projectModel.findByIdAndUpdate(
             projectId,
-            { owner: newOwnerId },
-            { session }
+            { owner: newOwnerId }
         );
-
-        await session.commitTransaction();
-    } catch (err) {
-        await session.abortTransaction();
-        throw new ApiError(500, "Failed to transfer ownership. Transaction rolled back.");
     } finally {
         session.endSession();
     }
