@@ -20,7 +20,7 @@ export function PeerView() {
                     <p className="text-sm text-zinc-500 mt-1">Builders you are actively collaborating with.</p>
                 </div>
                 <div className="flex -space-x-3">
-                    {PEERS.slice(0,3).map((peer, i) => (
+                    {PEERS.slice(0,3).map((peer) => (
                         <div key={peer.name} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-xs font-bold text-blue-700 z-10 relative">
                             {peer.name.charAt(0)}
                         </div>
