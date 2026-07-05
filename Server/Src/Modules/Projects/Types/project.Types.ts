@@ -19,6 +19,7 @@ export interface ProjectTypes {
     Requiremnts: {
         title: string,
         description: string,
+        role: string,
         openings: number,
         skills: string[],
     }[],

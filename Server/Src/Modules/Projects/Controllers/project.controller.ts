@@ -7,7 +7,14 @@ import authRepositary from "../../Auth/Repos/auth.repositary.js";
 import projectRepository from "../Repos/Project.repos.js";
 import projectService from "../Services/Project.services.js";
 import projectModel from "../Models/Project.model.js";
+import MemberModel from "../Models/Member.model.js";
 import mongoose from "mongoose";
+import { DEFAULT_PERMISSIONS } from "../Types/Member.Types.js";
+import {
+    createProjectValidationSchema,
+    updateProjectValidationSchema,
+    projectIdParamSchema
+} from "../Validation/Project.validation.js";
 
 export const createProject = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user.userId
@@ -19,10 +26,26 @@ export const createProject = asyncHandler(async (req: Request, res: Response) =>
         throw new ApiError(404, "user not found")
     }
 
-    const project = await projectRepository.createProject(req.body, userId)
+    const parsed = createProjectValidationSchema.safeParse({ body: req.body });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const project = await projectRepository.createProject(parsed.data.body, userId)
     if (!project) {
         throw new ApiError(400, "Something error occured")
     }
+
+    // Auto-create OWNER membership in the Member model
+    await MemberModel.create({
+        project: (project as any)._id,
+        user: userId,
+        role: "OWNER",
+        permissions: DEFAULT_PERMISSIONS.OWNER,
+        status: "ACTIVE",
+        joinedBy: "OWNER"
+    });
+
     return res.status(201).json({
         success: true,
         message: "project has created",
@@ -36,14 +59,15 @@ export const getProjectController = asyncHandler(async (req: Request, res: Respo
     const userId = (req as any).user.userId
     const queryFilter = projectService.filterProjects(req.query)
     const { page = 1, limit = 10, sort = "latest" } = req.query
-    const skip = (Number(page - 1)) * Number(limit)
+    const skip = (Number(page) - 1) * Number(limit)
     const [project, total] = await Promise.all([
         projectModel.find(queryFilter)
             .sort(
                 sort == "oldest" ?
                     { createdAt: 1 } : { createdAt: -1 }
             )
-            .limit(Number(skip))
+            .skip(skip)
+            .limit(Number(limit))
             .lean(),
 
         projectModel.countDocuments(queryFilter)
@@ -83,6 +107,28 @@ export const getMyProjectController = asyncHandler(async (req: Request, res: Res
     })
 })
 
+export const getMyMembershipsController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized access")
+    }
+    const user = await authRepositary.findById(userId)
+    if (!user) {
+        throw new ApiError(400, "User not found")
+    }
+    
+    const memberships = await MemberModel.find({ user: userId, status: "ACTIVE" }).populate("project").lean();
+    const projects = memberships
+        .map((m: any) => m.project)
+        .filter((p: any) => p !== null && p !== undefined);
+
+    return res.status(200).json({
+        success: true,
+        message: "memberships fetched successfully",
+        projects
+    });
+})
+
 export const getProjectById = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
     if (!userId) {
@@ -94,7 +140,7 @@ export const getProjectById = asyncHandler(async (req: Request, res: Response) =
     }
     const { projectId } = req.params
     if (!projectId) throw new ApiError(400, "project id not provided")
-    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId)
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId as string)
     const project = await projectService.getProjectById(projectIdObjectForm)
     return res.status(200).json({
         message: "project fetched successfully",
@@ -104,4 +150,66 @@ export const getProjectById = asyncHandler(async (req: Request, res: Response) =
         }
     })
 })
+
+export const updateProjectController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
+    const parsed = updateProjectValidationSchema.safeParse({ params: req.params, body: req.body });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const { projectId } = parsed.data.params;
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId);
+
+    const project = await projectService.updateProject(projectIdObjectForm, userId, parsed.data.body);
+
+    return res.status(200).json({
+        success: true,
+        message: "Project updated successfully",
+        data: { project },
+    });
+});
+
+export const deleteProjectController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
+    const parsed = projectIdParamSchema.safeParse({ params: req.params });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const { projectId } = parsed.data.params;
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId);
+
+    await projectService.deleteProject(projectIdObjectForm, userId);
+
+    return res.status(200).json({
+        success: true,
+        message: "Project deleted successfully",
+    });
+});
+
+export const archiveProjectController = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    if (!userId) throw new ApiError(401, "Unauthorized access");
+
+    const parsed = projectIdParamSchema.safeParse({ params: req.params });
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((e) => e.message).join(", "));
+    }
+
+    const { projectId } = parsed.data.params;
+    const projectIdObjectForm = new mongoose.Types.ObjectId(projectId);
+
+    const project = await projectService.archiveProject(projectIdObjectForm, userId);
+
+    return res.status(200).json({
+        success: true,
+        message: "Project archived successfully",
+        data: { project },
+    });
+});
 
