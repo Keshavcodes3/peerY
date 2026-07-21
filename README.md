@@ -16,7 +16,7 @@ Built with ❤️ using React · TypeScript · Node.js · Express · MongoDB · 
 
 ---
 
-# 👋 Welcome to peerY
+#  Welcome to peerY
 
 peerY is the platform I wish existed when I started programming.
 
